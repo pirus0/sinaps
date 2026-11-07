@@ -1,0 +1,11 @@
+<!-- Uygulama simgesi kaynağı (PWA 192/512, apple-touch). Kâğıt zemin, kalın dal, iris tomurcuk.
+     Maskable güvenli alan: çap %80 daire, işaret içinde. Koyu sürüm gerekmez (Eyes On simgesi de tek sürüm). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#efebe2"/>
+  <g transform="translate(256 256) scale(16.5) translate(-12.6 -13.5)" fill="none" stroke="#1d1b18" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 21v-7"/>
+    <path d="M12 14c0-4-2-6.5-5.5-8"/>
+    <path d="M12 14c0-3 1.8-5 4.8-5.8"/>
+    <circle cx="18.2" cy="7.8" r="2.3" fill="#b8462b" stroke="none"/>
+  </g>
+</svg>
