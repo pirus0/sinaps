@@ -4,6 +4,8 @@
 - Çalışma zamanı bağımlılığı yok; HTML/CSS/JS, Node'un yerleşik statik sunucusu ve test sistemi.
 - 16 mantık testi: her veri işlemi, JSON gidiş-dönüş, birleştirme, arama, şiir ve 300 seviye derinlik.
 - 7 Playwright akışı: Chromium 375/430 açık-koyu + masaüstü 1440×900; WebKit iPhone 13 390×844 açık-koyu.
+- Pafta karşılaştırmasındaki 9 fark düzeltildi; 7 görünümde uzun taşıma listesi kaydırılırken sabit
+  onay düğmesinin konumu ayrıca ölçüldü. Güncel ekranlarda tek satır tost ve renk ayrımı incelendi.
 - 5 ek hata/kurtarma senaryosu: paylaşım sözleşmesi/iptal, paylaşım hatasında indirme, dolu depo,
   iki sekme çakışması, bozuk kaydı koruma ve ham dışa aktarma.
 - Sonuç dosyaları ve ekranlar `../ekran/`; işletim sistemi paylaşım penceresi ve gerçek iOS klavyesi
@@ -43,5 +45,5 @@ son yedek zamanını ilerletmez; diğer hatalarda gerçek indirme alternatifi ç
 
 ## Kaynaklar
 Görsel kararlar `../ARAYUZ.md` ve `../Tasarim/`; ürün/veri kararları `../FIKIR.md` ve
-`../FIKIR-durumlar.md`. Teknik araştırma `../ARASTIRMA.md` §6–7.
+`../FIKIR-durumlar.md`. Teknik araştırmanın ayrıntıları `../Arsiv/ARASTIRMA-2026-11-08-pwa.md` içinde.
 Font kaynakları Google Fonts `ofl/geist` ve `ofl/bricolagegrotesque`; SIL OFL lisansları `fonts/` içinde.

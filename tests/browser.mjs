@@ -151,6 +151,19 @@ async function run(browser, config) {
     await geometry(page); await screenshot(page, `${name}-uzun`);
     await click('Ağaç'); await geometry(page); await screenshot(page, `${name}-agac`);
     await click('Kapat');
+    await click('Menü'); await click('Taşı');
+    const footerBefore = await page.locator('#sheet-footer').boundingBox();
+    const scrollable = await page.locator('#sheet-content').evaluate(node => {
+      node.scrollTop = 0; return node.scrollHeight > node.clientHeight;
+    });
+    assert.equal(scrollable, true, 'Derin taşıma listesi kaydırılabilir olmalı');
+    const footerAtTop = await page.locator('#sheet-footer').boundingBox();
+    await page.locator('#sheet-content').evaluate(node => { node.scrollTop = node.scrollHeight; });
+    const footerAtEnd = await page.locator('#sheet-footer').boundingBox();
+    assert.equal(footerBefore.y, footerAtTop.y);
+    assert.equal(footerAtTop.y, footerAtEnd.y, 'Taşı onayı listeyle kaymamalı');
+    await geometry(page); await screenshot(page, `${name}-tasi-uzun`);
+    await click('Kapat');
     if (name.startsWith('iphone13')) {
       // WebKit's emulated offline flag produces an internal navigation error with SWs.
       // Stop the actual HTTP server to test a real network failure instead.

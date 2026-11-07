@@ -36,7 +36,11 @@ function backupDue() {
 function rememberNote() { try { localStorage.setItem('dallanan-not-last', current ?? ''); } catch {} }
 const paths = {
   tree: '<path d="M5 4.5v13a2 2 0 0 0 2 2h3M5 10.5h5M14 10.5h5M14 19.5h5M9 4.5h10"/>',
-  settings: '<path d="M5 4v16M12 4v16M19 4v16"/><path d="M2 8h6m1 8h6m1-7h6"/>',
+  settings: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  text: '<path d="M5 6h14M5 10h14M5 14h9M5 18h11"/>',
+  upload: '<path d="M12 15V4M8 8l4-4 4 4M5 15v3.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
+  move: '<path d="M5 4v7a3 3 0 0 0 3 3h11M15 10l4 4-4 4"/>',
   backup: '<path d="M7 17.5a4 4 0 0 1-.4-7.98A5.5 5.5 0 0 1 17.4 8.6a4.2 4.2 0 0 1-.4 8.9H7ZM12 10.5v5.5m-2.4-2.2 2.4 2.4 2.4-2.4"/>',
   plus: '<path d="M12 5v14M5 12h14"/>', close: '<path d="m6.5 6.5 11 11m0-11-11 11"/>',
   check: '<path d="m5 12 4 4L19 6"/>',
@@ -242,6 +246,7 @@ function render() {
 }
 
 function openSheet(label, route = label) {
+  const changedPanel = !sheet.open || panelRoute !== route;
   sheet.classList.remove('tall');
   $('#note-text')?.blur();
   clearTimeout(saveTimer);
@@ -255,7 +260,9 @@ function openSheet(label, route = label) {
   $('#sheet-title').textContent = label;
   document.body.append($('#notice')); $('#notice').classList.remove('in-sheet');
   sheetContent.replaceChildren();
+  $('#sheet-footer').replaceChildren(); $('#sheet-footer').hidden = true;
   if (!sheet.open) sheet.showModal();
+  if (changedPanel) $('#sheet-title').focus({ preventScroll: true });
 }
 function closePanel() {
   if (history.state?.panel) history.back();
@@ -347,11 +354,12 @@ function openTree(moving = false) {
   let target;
   const search = el('input', 'search'); search.type = 'search'; search.placeholder = 'Ara';
   search.setAttribute('aria-label', 'Ara'); search.autocomplete = 'off';
+  const searchField = el('div', 'search-field'); searchField.append(icon('search'), search);
   const list = el('div', 'tree-list');
-  sheetContent.append(search, list);
-  const moveButton = button('Taşı', () => performMove(target), 'button wide');
+  sheetContent.append(searchField, list);
+  const moveButton = button('Taşı', () => performMove(target), 'button wide', 'move');
   moveButton.disabled = true;
-  if (moving) sheetContent.append(moveButton);
+  if (moving) { $('#sheet-footer').append(moveButton); $('#sheet-footer').hidden = false; }
   const performMove = id => {
     const old = { ...selected };
     if (selected.ustId === id) { closePanel(); return; }
@@ -368,7 +376,7 @@ function openTree(moving = false) {
     list.replaceChildren();
     if (moving) {
       const root = row('Kök', () => choose(null)); root.classList.add('tree-root');
-      if (selected.ustId === null) root.setAttribute('aria-current', 'true');
+      if (selected.ustId === null) { root.setAttribute('aria-current', 'true'); root.classList.add('current-parent'); }
       if (target === null) { root.classList.add('selected-target'); root.append(icon('check')); }
       list.append(root);
     }
@@ -380,7 +388,10 @@ function openTree(moving = false) {
       const nested = children(store, note.id);
       const entry = el('div', `tree-row${depth ? ' nested' : ''}`);
       entry.style.paddingLeft = `${Math.min(depth, 4) * 22}px`;
-      if (note.id === (moving ? selected.ustId : current)) { entry.classList.add('current'); entry.setAttribute('aria-current', 'true'); }
+      const currentParent = moving && note.id === selected.ustId;
+      if (currentParent || (!moving && note.id === current)) {
+        entry.classList.add(moving ? 'current-parent' : 'current'); entry.setAttribute('aria-current', 'true');
+      }
       if (moving && note.id === target) entry.classList.add('selected-target');
       if (nested.length && !searching) {
         const toggle = button(expanded.has(note.id) ? 'Katla' : 'Aç', () => {
@@ -399,7 +410,7 @@ function openTree(moving = false) {
         name.append(el('small', '', ancestors(store, note.id).slice(0, -1).map(title).join(' › ') || 'Kök'));
       }
       entry.append(name);
-      if (nested.length) entry.append(countBadge(nested.length));
+      if (nested.length && !currentParent) entry.append(countBadge(nested.length));
       if (moving && note.id === target) entry.append(icon('check'));
       if (moving && excluded.has(note.id)) entry.classList.add('excluded');
       list.append(entry);
@@ -433,10 +444,15 @@ function openSettings() {
     const control = button(label, () => { applyTheme(value); openSettings(); }, 'theme-button');
     control.setAttribute('aria-pressed', String(themePreference() === value)); themes.append(control);
   }
-  sheetContent.append(el('p', 'branch-label', 'Tema'), themes,
-    row('Yedek', () => openExport(true), days === null ? 'Hiç' : days === 0 ? 'Bugün' : `${days} gün önce`),
-    row('Metin', () => openExport(false)), row('Yükle', openImport),
-    el('p', 'sheet-copy', 'Notların yalnız bu cihazda saklanır. Cihaz değişirse yedekten geri yüklenir.'));
+  const backupRow = row('Yedek', () => openExport(true), days === null ? 'Hiç' : days === 0 ? 'Bugün' : `${days} gün önce`);
+  if (backupDue()) backupRow.insertBefore(el('span', 'backup-dot'), backupRow.lastElementChild);
+  const settingsRows = [[backupRow, 'backup'], [row('Metin', () => openExport(false)), 'text'], [row('Yükle', openImport), 'upload']];
+  for (const [setting, glyph] of settingsRows) {
+    setting.classList.add('settings-row'); setting.prepend(icon(glyph)); setting.append(icon('right'));
+  }
+  sheetContent.append(el('p', 'branch-label', 'Tema'), themes, el('hr', 'sheet-divider'),
+    ...settingsRows.map(([setting]) => setting),
+    el('p', 'sheet-copy', 'Notların yalnız bu telefonda saklanır. Telefon değişirse yedekten geri yüklenir.'));
 }
 function openExport(backup = true) {
   openSheet(backup ? 'Yedek' : 'Metin');
