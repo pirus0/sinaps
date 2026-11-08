@@ -43,12 +43,12 @@ try {
     Object.defineProperty(navigator, 'share', { configurable: true, value: async () => { throw new DOMException('Vazgeçildi', 'AbortError'); } });
   });
   await click(page, 'Ayarlar'); await click(page, 'Yedek'); await click(page, 'Paylaş');
-  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dallanan-not-meta-v1')).sonYedek), null);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dallanan-not-meta-v1'))?.sonYedek ?? null), null);
   await page.evaluate(() => Object.defineProperty(navigator, 'share', { configurable: true, value: async ({ files }) => {
     window.shareCalls.push({ name: files[0].name, type: files[0].type, text: await files[0].text() });
   } }));
   await click(page, 'Paylaş');
-  await page.waitForFunction(() => JSON.parse(localStorage.getItem('dallanan-not-meta-v1')).sonYedek !== null);
+  await page.waitForFunction(() => !!JSON.parse(localStorage.getItem('dallanan-not-meta-v1'))?.sonYedek);
   const shared = await page.evaluate(() => window.shareCalls[0]);
   assert.equal(shared.type, 'application/json');
   assert.equal(JSON.parse(shared.text).data.kartlar[0].baslik, 'Korunacak not');

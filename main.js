@@ -32,7 +32,7 @@ let png = { ready: null, preparing: false, retry: false };
 let library = emptyWorkspace(), activeBoard = null, boardMenuId = null;
 const draftBoards = new Set(), viewLibrary = { sonTuvalId: null, tuvaller: Object.create(null) };
 const view = { camera: { x: 0, y: 0, z: 1 }, tamCamera: { x: 0, y: 0, z: 1 }, sade: false, target: null, highlight: null };
-let meta = { sonYedek: null, yedektenSonraDegisti: false };
+let meta = { sonYedek: null };
 try { meta = { ...meta, ...JSON.parse(localStorage.getItem('dallanan-not-meta-v1') || '{}') }; } catch {}
 function saveMeta() { try { localStorage.setItem('dallanan-not-meta-v1', JSON.stringify(meta)); } catch {} }
 function saveView() {
@@ -49,12 +49,6 @@ function scene() {
   return sceneCache.scene;
 }
 function activeName() { const board = library.tuvaller.find(item => item.id === activeBoard); return board ? boardName(library, board) : '';  }
-function backupDue() {
-  const safari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|Android/.test(navigator.userAgent)
-    && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone;
-  return meta.yedektenSonraDegisti && (meta.fotoYedekGerekli || (!meta.sonYedek ? library.kartlar.length >= 10
-    : Date.now() - Date.parse(meta.sonYedek) > (safari ? 3 : 7) * 86400000));
-}
 function reportError(message) {
   $('#save-error').textContent = message; $('#save-error').hidden = false; document.body.classList.add('locked');
 }
@@ -109,7 +103,7 @@ function persist(next = store, force = false) {
       const card = actual.kartlar.find(item => item.id === id);
       if (card && (card.baslik.trim() || card.aciklama.trim() || card.fotoId)) drafts.delete(id);
     }
-    if (changed) { meta.yedektenSonraDegisti = true; saveMeta(); invalidatePNG(); }
+    if (changed) invalidatePNG();
     if (!persistentRequested && actual.kartlar.length) { persistentRequested = true; navigator.storage?.persist?.().catch(() => {}); }
     $('#save-error').hidden = true; document.body.classList.remove('locked'); return true;
   } catch { reportError('Kaydedilemedi. Kartlarını korumak için Yedek kullan.'); return false; }
@@ -182,16 +176,7 @@ function applyTheme(preference, save = true) {
   const theme = preference === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : preference;
   document.documentElement.dataset.theme = theme; $('meta[name="theme-color"]').content = theme === 'dark' ? '#11100e' : '#efebe2';
   if (save) { try { localStorage.setItem('dallanan-not-theme', preference); } catch {} }
-  for (const control of document.querySelectorAll('.theme-toggle')) updateThemeControl(control);
   invalidatePNG(); canvas.requestDraw();
-}
-function updateThemeControl(control) {
-  const dark = document.documentElement.dataset.theme === 'dark';
-  control.setAttribute('aria-label', dark ? 'Açık' : 'Koyu'); control.replaceChildren(icon(dark ? 'sun' : 'moon'));
-}
-function themeControl() {
-  const control = button('Tema', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'), 'icon-button');
-  control.classList.add('theme-toggle'); updateThemeControl(control); return control;
 }
 function brandTap() {
   const time = Date.now();
@@ -291,7 +276,7 @@ function renderHome() {
   const header = $('#header'), content = $('#content'); header.className = ''; header.replaceChildren(); content.replaceChildren(); content.className = 'board-grid';
   const heading = el('h1'); heading.id = 'brand-title'; heading.append(icon('brand'), document.createTextNode(APP_NAME)); heading.setAttribute('aria-label', APP_NAME); heading.addEventListener('click', brandTap);
   const pill = el('div', 'toolbar-pill'), settings = button('Ayarlar', openSettings, 'icon-button', 'settings');
-  if (backupDue()) settings.classList.add('backup-due'); pill.append(settings, button('Ara', openGlobalSearch, 'icon-button', 'search')); header.append(heading, pill);
+  pill.append(settings, button('Ara', openGlobalSearch, 'icon-button', 'search')); header.append(heading, pill);
   for (const board of library.tuvaller.filter(board => !board.silinme).sort((a, b) => Date.parse(b.sonAcilma) - Date.parse(a.sonAcilma))) {
     let held = false, timer;
     const tile = button(boardName(library, board), () => { if (!held) activateWorkspace(board.id); }, 'board-tile'); tile.dataset.board = board.id;
@@ -423,7 +408,6 @@ function openSheet(label, kind = label) {
   if (!sheet.open) focusReturn = document.activeElement;
   if (!restoring && changed) pushRoute({ card: current, target: view.target, panel: kind }, panelRoute === 'Menü' && kind === 'Bağlar');
   panelRoute = kind; $('#sheet-title').textContent = label; sheet.classList.remove('tall', 'photo-viewer');
-  sheet.querySelector('.theme-toggle')?.remove();
   document.body.append($('#notice')); $('#notice').classList.remove('in-sheet'); sheetContent.replaceChildren();
   $('#sheet-footer').replaceChildren(); $('#sheet-footer').hidden = true;
   if (!sheet.open) sheet.showModal(); if (changed) $('#sheet-title').focus({ preventScroll: true });
@@ -464,8 +448,10 @@ function openHeaderSearch(global = false) {
   searchController?.destroy();
   const kind = global ? 'Genel' : 'Ara';
   if (!restoring) { searchQueries[kind] = ''; pushRoute({ card: null, target: null, panel: kind }); }
+  const prefix = global ? el('span', 'icon-button') : button('Tuvaller', goHome, 'icon-button', 'left');
+  if (global) prefix.append(icon('brand'));
   searchController = new HeaderSearch({
-    header: $('#header'), query: searchQueries[kind], close: closePanel, prefix: global ? button(APP_NAME, brandTap, 'icon-button', 'brand') : button('Tuvaller', goHome, 'icon-button', 'left'),
+    header: $('#header'), query: searchQueries[kind], close: closePanel, prefix,
     change: query => { searchQueries[kind] = query; },
     results: query => {
       if (!global) return searchCards(store, query).map(card => ({ label: cardTitle(card), detail: card.aciklama.replace(/\s+/g, ' ').slice(0, 120), cardId: card.id }));
@@ -528,11 +514,9 @@ function sweepTrash() {
 function openGlobalSearch() { openHeaderSearch(true); }
 function openSettings() {
   openSheet('Ayarlar');
-  $('#close-sheet').before(themeControl());
   const days = meta.sonYedek ? Math.max(0, Math.floor((Date.now() - Date.parse(meta.sonYedek)) / 86400000)) : null;
   const backup = row('Yedek', () => openExport(true), { value: days === null ? 'Hiç' : days === 0 ? 'Bugün' : `${days} gün önce`, glyph: 'backup', arrow: true });
   backupSize().then(size => { const value = backup.querySelector('.muted'); if (value?.isConnected) value.textContent += ' · ' + bytesLabel(size); }).catch(() => {});
-  if (backupDue()) backup.insertBefore(el('span', 'backup-dot'), backup.lastElementChild);
   sheetContent.append(backup,
     row('Metin', () => openExport(false), { glyph: 'text', arrow: true }), row('Yükle', openImport, { glyph: 'upload', arrow: true }),
     el('p', 'sheet-copy', 'Kartların yalnız bu telefonda saklanır. Telefon değişirse yedekten geri yüklenir.'));
@@ -553,10 +537,10 @@ function openExport(backup) {
   let ready, snapshot, retry = false;
   const send = button('Paylaş', async () => {
     if (!ready) return;
-    const result = await sharePrepared(ready, APP_NAME);
-    if (result === 'activation') { if (retry) downloadFile(ready); else { retry = true; send.replaceChildren(document.createTextNode('Gönder')); return; } }
-    if (backup && result !== 'cancelled' && !rawBroken && snapshot === JSON.stringify(library)) {
-      meta.sonYedek = new Date().toISOString(); meta.yedektenSonraDegisti = false; meta.fotoYedekGerekli = false; saveMeta();
+    let result = await sharePrepared(ready, APP_NAME);
+    if (result === 'activation') { if (retry) { downloadFile(ready); result = 'downloaded'; } else { retry = true; send.replaceChildren(document.createTextNode('Gönder')); send.setAttribute('aria-label', 'Gönder'); return; } }
+    if (backup && ['shared', 'downloaded'].includes(result) && !rawBroken && snapshot === JSON.stringify(library)) {
+      meta.sonYedek = new Date().toISOString(); saveMeta();
     }
   }, 'button wide', 'share'); send.disabled = true; sheetContent.append(send);
   (async () => {
@@ -594,7 +578,7 @@ function openImportPreview() {
     setUndo(() => ({ surum: 3, tuvaller: library.tuvaller.filter(board => !boards.has(board.id)), kartlar: library.kartlar.filter(card => !ids.has(card.id)),
       ipler: library.ipler.filter(ip => !edgeIds.has(ip.id)) }), `${merged.addedCards.length} kart eklendi`);
   }, 'button'));
-  sheetContent.append(actions); if (backupDue()) sheetContent.append(row('Yedekle', exportBackup, { glyph: 'backup' }));
+  sheetContent.append(actions, row('Yedekle', exportBackup, { glyph: 'backup' }));
 }
 
 function openCopyPreview() {
@@ -668,7 +652,6 @@ $('#photo-file').addEventListener('change', async event => {
     next = positionCard(next, id, card.x, card.y, width());
     const beforeLibrary = library;
     if (!persist(next)) { library = beforeLibrary; await removePhoto(record.id); return; }
-    meta.fotoYedekGerekli = true; saveMeta();
     if (sheet.open) { sheet.close(); pushRoute({ card: current, panel: null, target: null }, true); }
     view.highlight = null; render(); retirePhotos([card]);
   } catch (error) { console.warn('Fotoğraf:', stage, error?.name, error?.message); notice('Fotoğraf eklenemedi. Yeniden dene.'); }

@@ -1,6 +1,12 @@
 # Sinaps doğrulama
 
 ## Güncel durum
+- Ayarlar tema ikonu ve iki yedek noktası tamamen kaldırıldı; `backupDue`/hatırlatma kodu yok.
+  Yedek satırında tarih/boyut, Yükle onayında koşulsuz Yedekle var. Eski fotoğraf/değişiklik
+  bayraklarıyla da nokta yok. İptal yedek tarihini değiştirmiyor; başarı/indirme değiştiriyor,
+  yeniden yüklemede tarih korunuyor. NotAllowed sonrası Gönder erişilebilir adı da güncellenir.
+  WebKit 390×844 + Chromium 1440×900 × iki tema; 44px/taşma temiz, 5 hata akışı yeniden geçti.
+  `node tests/backup-settings-browser.mjs`, ekranlar `../ekran/ayarlar-yedek/`.
 - Yazı sayfası Dal yerine yazısız Görsel artısı (44px, görselde iris); Değiştir/Kaldır sheet'i.
   Yazısız görsel Tam'da %75 yükseklik, Sade/PNG'de 40×40 hap/30px yuvarlak görsel; PDF'de yazı yok.
   Boş taslak saklanmaz; son görsel kaldırılınca kart/ipler silinir, Geri al ve 6.6sn sonrası fotoğraf
@@ -10,11 +16,8 @@
 - Fotoğraf kontrolü A üçgeni: dışa bakan 16×11/1.5 çizgi, görselsiz kâğıt ve görselli iris dolgu.
   44px saydam alanın kenarından dosya seçme, ekleme/kaldırma/geri al ve taşma WebKit iPhone
   390×844 + Chromium 1440×900'de geçti; iki tema `../ekran/ucgen/`, `node tests/triangle-browser.mjs`.
-- Tema Ayarlar başlığında X'in solunda: aynı 44px daire/yüzey, 8px aralık; liste Yedek'le başlar.
-  Ayrı satır/ayraç yok; Yedek'e geçişte ikon kalkar, geri dönüşte tek ikon gelir. WebKit iPhone
-  ve Chromium masaüstü geçti; `../ekran/tema-baglar/` açık/koyu görüntüleri yenilendi.
-- Tek yazısız tema ikonu: sistemin açık/koyu değişimini izleme, elle geçişten sonra sistemden
-  bağımsız seçim ve yeniden yüklemede kalıcılık; Bağlar Kaldır rengi iki temada, ip silme/geri al
+- Tema ilk açılışta sistemi izler; elle geçiş yalnız ana ekran başlığına çift dokunuşla yapılır,
+  seçim yeniden yüklemede kalır. Arama başlığında geçiş yok. Bağlar Kaldır rengi iki temada, ip silme/geri al
   ve kart korunumu geçti. WebKit iPhone 13 390×844 + Chromium 1440×900; 44px/taşma temiz.
   `node tests/theme-links-browser.mjs`, ekranlar `../ekran/tema-baglar/`.
 - Hover yalnız hover destekleyen cihazlarda: WebKit dokunma sonrası Geri yüzey rengi değişmiyor,

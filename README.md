@@ -16,7 +16,8 @@ Yazı sayfasında sol alt Görsel artısı fotoğraf ekler; görsel varsa Deği�
 Yazısız görsel kart saklanır: Tam'da yükseklik %75, Sade/PNG'de 40px görsel hapı.
 Yazı ve görsel yoksa kart kalmaz; son görseli kaldırınca kart/ipler Geri al ile döner.
 Sağ alttaki Yeni yalnız artı ikonudur (44px). Açıklamada Enter satır sonudur.
-Tema ilk açılışta sistemi izler; yazısız ay/güneş ikonu açık-koyu değiştirip tercihi saklar.
+Tema ilk açılışta sistemi izler; ana ekran başlığına çift dokunmak açık/koyu tercihini saklar.
+Yedek satırında tarih ve boyut görünür; Yükle onayında Yedekle her zaman bulunur.
 Bağlar'da kırmızı Kaldır yalnız ipi kaldırır; Geri al ile döner.
 Boşlukta kaydır, iki parmakla yakınlaştır. Kırmızı düğme/tuval adı merkeze döner.
 Ara üst şeridi açar; X kapatır. Sade en az .38, sığmazsa bakılan yer korunur.
@@ -39,6 +40,8 @@ kimlikli tuval ekler. PNG/PDF/TXT geri yüklenebilir yedek değildir.
 ve Chromium/WebKit kullanır. Ekran/PDF örnekleri `../ekran/sinaps/` içinde.
 `node tests/image-card-browser.mjs`: yazı artısı, görsel kart ve sil/geri al;
 iki tema 390px/masaüstü ekranları, gerçek PNG/PDF `../ekran/gorsel-kart/` içinde.
+`node tests/backup-settings-browser.mjs`: noktalar/tema ikonu yok; yedek iptali, başarı,
+indirme, yeniden yükleme ve koşulsuz Yedekle; ekranlar `../ekran/ayarlar-yedek/` içinde.
 Çalışma zamanı yalnız PDF için yerel pdf-lib/fontkit: `vendor/README.md`.
 Ad/simge tek kaynak `brand.js`; `npm run icons` PWA ikonlarını üretir.
 Yerel fontlar ve OFL lisansları `fonts/`; PDF 600/700 örnekleri aynı fontlardan.
