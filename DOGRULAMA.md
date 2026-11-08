@@ -1,6 +1,8 @@
 # Sinaps doğrulama
 
 ## Güncel durum
+- Hover yalnız hover destekleyen cihazlarda: WebKit dokunma sonrası Geri yüzey rengi değişmiyor,
+  Chromium farede hover çalışıyor; aynı gezinme testi ve ekranlarıyla doğrulandı.
 - Geri/Tamam ile anında kayıt ve tuvale dönüş; sağ alt Yeni yazısız 44×44px: WebKit iPhone 13
   390×844 ve Chromium 1440×900 geçti. Yeniden yüklemede veri, 44px ve yatay taşma sınandı;
   `node tests/navigation-browser.mjs`, kanıt `../ekran/gezinme/`.

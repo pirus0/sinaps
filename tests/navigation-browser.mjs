@@ -44,6 +44,21 @@ try {
       // Click immediately after editing, before the autosave debounce.
       await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Geri kaydı'); await click('Geri');
       await page.locator('#board').waitFor({ state: 'visible' }); await checkNew(); await checkLayout();
+      const boardBack = page.getByRole('button', { name: 'Tuvaller', exact: true });
+      const canHover = await page.evaluate(() => matchMedia('(hover:hover)').matches);
+      if (canHover) await page.mouse.move(0, 0);
+      const beforeHover = await boardBack.evaluate(node => getComputedStyle(node).backgroundColor);
+      await boardBack.hover();
+      const hoverBackground = await boardBack.evaluate(node => getComputedStyle(node).backgroundColor);
+      if (canHover) assert.notEqual(hoverBackground, beforeHover);
+      else {
+        assert.equal(hoverBackground, beforeHover);
+        const surface = await page.evaluate(() => {
+          const probe = document.createElement('span'); probe.style.backgroundColor = 'var(--surface)'; document.body.append(probe);
+          const color = getComputedStyle(probe).backgroundColor; probe.remove(); return color;
+        });
+        assert.equal(hoverBackground, surface);
+      }
       let cards = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).kartlar, WORKSPACE_KEY);
       assert.equal(cards.length, 1); assert.equal(cards[0].baslik, 'Geri kaydı'); assert.equal(cards[0].aciklama, 'Geri ile hemen kaydedilir.');
       await page.screenshot({ path: output + name + '-tuval.png' });
@@ -53,7 +68,7 @@ try {
       await page.screenshot({ path: output + name + '-ana.png' }); await page.reload();
       cards = await page.evaluate(key => JSON.parse(localStorage.getItem(key)).kartlar, WORKSPACE_KEY);
       assert.equal(cards[0].baslik, 'Geri kaydı'); assert.equal(cards[0].aciklama, 'Tamam ile hemen kaydedilir.');
-      assert.deepEqual(errors, []); console.log('PASS ' + name + ': Geri/Tamam kayıt, Yeni 44px, taşma ve yeniden yükleme');
+      assert.deepEqual(errors, []); console.log('PASS ' + name + ': Geri/Tamam kayıt, Yeni 44px, hover, taşma ve yeniden yükleme');
     } finally { await browser.close(); }
   }
 } finally { server.kill(); }
