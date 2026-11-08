@@ -1,6 +1,10 @@
 # Sinaps doğrulama
 
 ## Güncel durum
+- Tek yazısız tema ikonu: sistemin açık/koyu değişimini izleme, elle geçişten sonra sistemden
+  bağımsız seçim ve yeniden yüklemede kalıcılık; Bağlar Kaldır rengi iki temada, ip silme/geri al
+  ve kart korunumu geçti. WebKit iPhone 13 390×844 + Chromium 1440×900; 44px/taşma temiz.
+  `node tests/theme-links-browser.mjs`, ekranlar `../ekran/tema-baglar/`.
 - Hover yalnız hover destekleyen cihazlarda: WebKit dokunma sonrası Geri yüzey rengi değişmiyor,
   Chromium farede hover çalışıyor; aynı gezinme testi ve ekranlarıyla doğrulandı.
 - Geri/Tamam ile anında kayıt ve tuvale dönüş; sağ alt Yeni yazısız 44×44px: WebKit iPhone 13

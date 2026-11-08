@@ -182,7 +182,16 @@ function applyTheme(preference, save = true) {
   const theme = preference === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : preference;
   document.documentElement.dataset.theme = theme; $('meta[name="theme-color"]').content = theme === 'dark' ? '#11100e' : '#efebe2';
   if (save) { try { localStorage.setItem('dallanan-not-theme', preference); } catch {} }
+  for (const control of document.querySelectorAll('.theme-toggle')) updateThemeControl(control);
   invalidatePNG(); canvas.requestDraw();
+}
+function updateThemeControl(control) {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  control.setAttribute('aria-label', dark ? 'Açık' : 'Koyu'); control.replaceChildren(icon(dark ? 'sun' : 'moon'));
+}
+function themeControl() {
+  const control = button('Tema', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'), 'icon-button');
+  control.classList.add('theme-toggle'); updateThemeControl(control); return control;
 }
 function brandTap() {
   const time = Date.now();
@@ -445,7 +454,7 @@ function openConnections() {
     const remove = button('Kaldır', () => {
       if (!persist(disconnect(store, ip.id))) return;
       openConnections(); setUndo(() => mergeGraphs(store, { surum: 2, kartlar: [], ipler: [ip] }).store, 'Bağ kaldırıldı');
-    }, 'button quiet'); remove.disabled = locked; entry.append(name, remove); sheetContent.append(entry);
+    }, 'button quiet danger'); remove.disabled = locked; entry.append(name, remove); sheetContent.append(entry);
   }
 }
 function openHeaderSearch(global = false) {
@@ -515,16 +524,13 @@ function sweepTrash() {
 }
 function openGlobalSearch() { openHeaderSearch(true); }
 function openSettings() {
-  openSheet('Ayarlar'); const themes = el('div', 'theme-controls'); themes.setAttribute('role', 'group'); themes.setAttribute('aria-label', 'Tema');
-  for (const [label, value] of [['Sistem', 'system'], ['Açık', 'light'], ['Koyu', 'dark']]) {
-    const control = button(label, () => { applyTheme(value); openSettings(); }, 'theme-button');
-    control.setAttribute('aria-pressed', String(themePreference() === value)); themes.append(control);
-  }
+  openSheet('Ayarlar');
+  const themes = el('div', 'theme-setting'); themes.append(themeControl());
   const days = meta.sonYedek ? Math.max(0, Math.floor((Date.now() - Date.parse(meta.sonYedek)) / 86400000)) : null;
   const backup = row('Yedek', () => openExport(true), { value: days === null ? 'Hiç' : days === 0 ? 'Bugün' : `${days} gün önce`, glyph: 'backup', arrow: true });
   backupSize().then(size => { const value = backup.querySelector('.muted'); if (value?.isConnected) value.textContent += ' · ' + bytesLabel(size); }).catch(() => {});
   if (backupDue()) backup.insertBefore(el('span', 'backup-dot'), backup.lastElementChild);
-  sheetContent.append(el('p', 'branch-label', 'Tema'), themes, el('hr', 'sheet-divider'), backup,
+  sheetContent.append(themes, el('hr', 'sheet-divider'), backup,
     row('Metin', () => openExport(false), { glyph: 'text', arrow: true }), row('Yükle', openImport, { glyph: 'upload', arrow: true }),
     el('p', 'sheet-copy', 'Kartların yalnız bu telefonda saklanır. Telefon değişirse yedekten geri yüklenir.'));
 }
