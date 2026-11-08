@@ -1,6 +1,9 @@
 # Sinaps doğrulama
 
 ## Güncel durum
+- Tema Ayarlar başlığında X'in solunda: aynı 44px daire/yüzey, 8px aralık; liste Yedek'le başlar.
+  Ayrı satır/ayraç yok; Yedek'e geçişte ikon kalkar, geri dönüşte tek ikon gelir. WebKit iPhone
+  ve Chromium masaüstü geçti; `../ekran/tema-baglar/` açık/koyu görüntüleri yenilendi.
 - Tek yazısız tema ikonu: sistemin açık/koyu değişimini izleme, elle geçişten sonra sistemden
   bağımsız seçim ve yeniden yüklemede kalıcılık; Bağlar Kaldır rengi iki temada, ip silme/geri al
   ve kart korunumu geçti. WebKit iPhone 13 390×844 + Chromium 1440×900; 44px/taşma temiz.

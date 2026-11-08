@@ -32,12 +32,19 @@ try {
         assert.equal(await page.locator('.theme-toggle').count(), 1);
         assert.equal(await page.locator('.theme-toggle').textContent(), '');
         assert.equal(await page.locator('.theme-toggle svg').count(), 1);
+        const toggle = page.locator('.sheet-header .theme-toggle'), close = page.locator('#close-sheet');
+        const a = await toggle.boundingBox(), b = await close.boundingBox();
+        assert.ok(a && b); assert.equal(a.y, b.y); assert.equal(b.x - a.x - a.width, 8);
+        assert.equal(a.width, 44); assert.equal(a.height, 44);
+        assert.equal(await toggle.evaluate(node => getComputedStyle(node).backgroundColor), await close.evaluate(node => getComputedStyle(node).backgroundColor));
+        assert.equal(await page.locator('#sheet-content > :first-child').getAttribute('aria-label'), 'Yedek');
+        assert.equal(await page.locator('.theme-setting, #sheet-content .sheet-divider').count(), 0);
       };
       await page.goto('http://127.0.0.1:4184'); assert.equal(await theme(), 'light');
       assert.equal(await page.evaluate(() => localStorage.getItem('dallanan-not-theme')), null);
       await openTheme(); await layout(); await shot('acik');
       await page.emulateMedia({ colorScheme: 'dark' }); await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
-      assert.equal(await page.locator('.theme-toggle').getAttribute('aria-label'), 'Açık'); await shot('koyu');
+      assert.equal(await page.locator('.theme-toggle').getAttribute('aria-label'), 'Açık'); await openTheme(); await layout(); await shot('koyu');
       await page.locator('.theme-toggle').click(); assert.equal(await theme(), 'light');
       assert.equal(await page.evaluate(() => localStorage.getItem('dallanan-not-theme')), 'light');
       await page.emulateMedia({ colorScheme: 'light' }); await page.emulateMedia({ colorScheme: 'dark' }); assert.equal(await theme(), 'light');
@@ -47,6 +54,8 @@ try {
       if (await page.locator('dialog[open]').count()) await click('Kapat');
       await click('Ayarlar'); assert.equal(await page.locator('.theme-controls, .theme-button').count(), 0);
       for (const label of ['Sistem', 'Açık', 'Koyu']) assert.equal(await page.getByRole('button', { name: label, exact: true }).filter({ hasText: label }).count(), 0);
+      await click('Yedek'); assert.equal(await page.locator('.theme-toggle').count(), 0);
+      await page.goBack(); await page.getByRole('heading', { name: 'Ayarlar', exact: true }).waitFor(); await openTheme();
       await click('Kapat'); await click('Yeni'); await page.getByRole('textbox', { name: 'Ad', exact: true }).fill('Bağ rengi'); await page.keyboard.press('Enter');
       await click('Yeni'); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Bir');
       await click('Dal'); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('İki'); await click('Menü'); await click('Bağlar');
@@ -63,7 +72,7 @@ try {
       }
       await click('Kaldır'); assert.equal((await stored()).ipler.length, 0); assert.equal((await stored()).kartlar.length, 2);
       await click('Geri al'); assert.equal((await stored()).ipler.length, 1); assert.equal((await stored()).kartlar.length, 2);
-      assert.deepEqual(errors, []); console.log('PASS ' + name + ': sistem/tema geçişi/kalıcılık, kırmızı Kaldır/geri al, 44px/taşma');
+      assert.deepEqual(errors, []); console.log('PASS ' + name + ': başlıkta tema/8px/geri dönüş, sistem/tema geçişi/kalıcılık, kırmızı Kaldır/geri al, 44px/taşma');
     } finally { await browser.close(); }
   }
 } finally { server.kill(); }

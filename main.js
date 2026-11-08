@@ -421,6 +421,7 @@ function openSheet(label, kind = label) {
   if (!sheet.open) focusReturn = document.activeElement;
   if (!restoring && changed) pushRoute({ card: current, target: view.target, panel: kind }, panelRoute === 'Menü' && kind === 'Bağlar');
   panelRoute = kind; $('#sheet-title').textContent = label; sheet.classList.remove('tall', 'photo-viewer');
+  sheet.querySelector('.theme-toggle')?.remove();
   document.body.append($('#notice')); $('#notice').classList.remove('in-sheet'); sheetContent.replaceChildren();
   $('#sheet-footer').replaceChildren(); $('#sheet-footer').hidden = true;
   if (!sheet.open) sheet.showModal(); if (changed) $('#sheet-title').focus({ preventScroll: true });
@@ -525,12 +526,12 @@ function sweepTrash() {
 function openGlobalSearch() { openHeaderSearch(true); }
 function openSettings() {
   openSheet('Ayarlar');
-  const themes = el('div', 'theme-setting'); themes.append(themeControl());
+  $('#close-sheet').before(themeControl());
   const days = meta.sonYedek ? Math.max(0, Math.floor((Date.now() - Date.parse(meta.sonYedek)) / 86400000)) : null;
   const backup = row('Yedek', () => openExport(true), { value: days === null ? 'Hiç' : days === 0 ? 'Bugün' : `${days} gün önce`, glyph: 'backup', arrow: true });
   backupSize().then(size => { const value = backup.querySelector('.muted'); if (value?.isConnected) value.textContent += ' · ' + bytesLabel(size); }).catch(() => {});
   if (backupDue()) backup.insertBefore(el('span', 'backup-dot'), backup.lastElementChild);
-  sheetContent.append(themes, el('hr', 'sheet-divider'), backup,
+  sheetContent.append(backup,
     row('Metin', () => openExport(false), { glyph: 'text', arrow: true }), row('Yükle', openImport, { glyph: 'upload', arrow: true }),
     el('p', 'sheet-copy', 'Kartların yalnız bu telefonda saklanır. Telefon değişirse yedekten geri yüklenir.'));
 }
