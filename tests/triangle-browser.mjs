@@ -1,3 +1,4 @@
+import { drawBranch } from './gestures.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { execFileSync, spawn } from 'node:child_process';
@@ -23,7 +24,7 @@ try {
       await click('Yeni'); await page.getByRole('textbox', { name: 'Ad', exact: true }).fill('Üçgen'); await page.keyboard.press('Enter');
       await click('Yeni'); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Fotosentez');
       await page.getByRole('textbox', { name: 'Açıklama', exact: true }).fill('Işık enerjisi kimyasal enerjiye');
-      await click('Dal'); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Klorofil');
+      await click('Tamam'); await page.locator('#board').waitFor({ state: 'visible' }); await drawBranch(page); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Klorofil');
       await page.getByRole('textbox', { name: 'Açıklama', exact: true }).fill('Kırmızı ve maviyi soğurur');
       await click('Tamam'); await page.locator('#board').waitFor({ state: 'visible' });
       const ids = (await data()).kartlar.map(card => card.id), control = id => page.locator(`[data-photo="${id}"]`);

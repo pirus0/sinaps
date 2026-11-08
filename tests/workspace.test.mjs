@@ -3,7 +3,14 @@ import assert from 'node:assert/strict';
 import { searchWorkspace } from '../workspace.js';
 import { emptyGraph, addCard, connectCards, STORAGE_KEY as GRAPH_KEY } from '../graph.js';
 import { emptyWorkspace, newBoard, boardGraph, putBoardGraph, normalizeWorkspace, deleteBoard, fromGraph,
-  backupWorkspace, parseWorkspace, mergeWorkspaces, loadWorkspace, WORKSPACE_KEY, workspaceText } from '../workspace.js';
+  backupWorkspace, parseWorkspace, mergeWorkspaces, loadWorkspace, WORKSPACE_KEY, workspaceText, boardName } from '../workspace.js';
+test('adsız tuval görsel kartı atlar, ilk yazılı karttan ad alır', () => {
+  let graph = addCard(emptyGraph(), {}, 'photo').store; graph.kartlar[0].fotoId = 'foto';
+  graph = addCard(graph, { aciklama: '\n  İlk yazı' }, 'text').store;
+  const space = fromGraph(graph), board = { ...space.tuvaller[0], ad: '' };
+  assert.equal(boardName(space, board), 'İlk yazı');
+  assert.equal(boardName({ ...space, kartlar: space.kartlar.slice(0, 1) }, board), 'Adsız');
+});
 function fixture() {
   let space = newBoard(emptyWorkspace(), 'ders').workspace;
   space = newBoard(space, 'siir').workspace;

@@ -1,3 +1,4 @@
+import { drawBranch } from './gestures.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { execFileSync, spawn } from 'node:child_process';
@@ -28,7 +29,7 @@ async function run(browser, name, width, dark, mobile = true) {
     await click('Yeni');await page.getByRole('textbox',{name:'Ad',exact:true}).fill('Dersler');await page.keyboard.press('Enter');
     await click('Yeni');await title.fill('Fizik');await title.press('Enter');assert.equal(await body.evaluate(n=>n===document.activeElement),true);
     await body.fill('  İlk dize\n\nSon dize');await body.press('End');await body.press('Enter');await body.press('x');
-    await click('Dal');await title.fill('Kuvvet');await body.fill('F = m · a');await done();
+    await done(); await drawBranch(page);await title.fill('Kuvvet');await body.fill('F = m · a');await done();
     let data=await stored();assert.equal(data.kartlar.length,2);assert.equal(data.ipler.length,1);assert.match(data.kartlar[0].aciklama,/\nx$/);
     await click('Yeni');await done();assert.equal((await stored()).kartlar.length,2,'boş taslak silinir');
     await find('Fizik');const id=data.kartlar[0].id;

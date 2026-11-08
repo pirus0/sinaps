@@ -1,4 +1,4 @@
-import { cardTitle, cardHeight } from './graph.js';
+import { cardTitle, cardHeight, isImageCard } from './graph.js';
 
 export const cardWidth = width => Math.round(Math.min(width, 448) * .42);
 export const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -51,7 +51,8 @@ export function curveBetween(a, b, orientationWidth = 158) {
   return { start, end, c1, c2, d: `M${start.x} ${start.y}C${c1.x} ${c1.y} ${c2.x} ${c2.y} ${end.x} ${end.y}` };
 }
 export function makeScene(store, width = 158, measure = text => [...text].length * 8, title = '') {
-  const cards = store.kartlar.map(card => ({ ...card, label: cardTitle(card), w: Math.min(width, Math.max(card.fotoId ? 74 : 72, measure(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0))), h: 40 }));
+  const cards = store.kartlar.map(card => ({ ...card, label: isImageCard(card) ? '' : cardTitle(card),
+    w: isImageCard(card) ? 40 : Math.min(width, Math.max(card.fotoId ? 74 : 72, measure(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0))), h: 40 }));
   const map = new Map(cards.map(card => [card.id, card]));
   const edges = store.ipler.filter(ip => map.has(ip.aId) && map.has(ip.bId))
     .map(ip => ({ ...ip, ...curveBetween(map.get(ip.aId), map.get(ip.bId), width) }));

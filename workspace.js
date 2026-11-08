@@ -1,4 +1,4 @@
-import { emptyGraph, normalizeGraph, loadGraph, parseBackup as parseGraph, exportText as graphText } from './graph.js';
+import { emptyGraph, normalizeGraph, loadGraph, parseBackup as parseGraph, exportText as graphText, hasCardText, cardTitle } from './graph.js';
 export const WORKSPACE_KEY = 'dallanan-not-data-v3';
 export const WORKSPACE_VIEW_KEY = 'dallanan-not-view-v3';
 export const emptyWorkspace = () => ({ surum: 3, tuvaller: [], kartlar: [], ipler: [] });
@@ -53,7 +53,8 @@ export function newBoard(workspace, id = crypto.randomUUID()) {
   return { board, workspace: { ...workspace, tuvaller: [...workspace.tuvaller, board] } };
 }
 export function boardName(workspace, board) {
-  return board.ad.trim() || workspace.kartlar.find(card => card.tuvalId === board.id)?.baslik.trim() || 'Adsız';
+  const first = workspace.kartlar.find(card => card.tuvalId === board.id && hasCardText(card));
+  return board.ad.trim() || (first ? cardTitle(first) : 'Adsız');
 }
 export function deleteBoard(workspace, id) {
   const graph = boardGraph(workspace, id), ids = new Set(graph.kartlar.map(card => card.id));

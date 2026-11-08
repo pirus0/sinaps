@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emptyGraph, addCard, editCard, positionCard, connectCards, disconnect, deleteCard, restoreDeleted,
   normalizeGraph, migrateV1, loadGraph, saveGraph, STORAGE_KEY, LEGACY_KEY, backupJSON, parseBackup,
-  mergeGraphs, searchCards, exportText, cardText } from '../graph.js';
+  mergeGraphs, searchCards, exportText, cardText, cardHeight, isImageCard } from '../graph.js';
 import { emptyStore, addNote } from '../model.js';
 
 function fixture() {
@@ -137,4 +137,15 @@ test('fotoğraf kimliği JSON turunda korunur, foto yüksekliği yeni kart boşl
 });
 test('yeni kart merkez çevresindeki 60px alanı kapatmaz', () => {
   const { card } = addCard(emptyGraph()); assert.ok(Math.abs(card.x) >= 158 / 2 + 60 || Math.abs(card.y) >= 104);
+});
+test('yazısız görselin yüksekliği gerçek boyuyla yerleşime ve yedeğe katılır', () => {
+  let graph = addCard(emptyGraph(), { x: 0, y: 200 }, 'photo').store;
+  graph.kartlar[0].fotoId = 'foto';
+  assert.equal(isImageCard(graph.kartlar[0]), true);
+  assert.equal(cardHeight(graph.kartlar[0], 164), 123);
+  assert.ok(Math.abs(cardHeight({ ...graph.kartlar[0], aciklama: 'Yazı' }, 164) - 186.4) < 1e-9);
+  const added = addCard(graph, { x: 0, y: 200, width: 164 }, 'new').card;
+  assert.ok(Math.abs(added.x) >= 180 || Math.abs(added.y - 200) >= (123 + 88) / 2 + 28);
+  assert.equal(parseBackup(backupJSON(graph)).kartlar[0].fotoId, 'foto');
+  assert.deepEqual(searchCards(graph, 'görsel'), []);
 });

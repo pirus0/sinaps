@@ -4,6 +4,14 @@ import { emptyGraph, addCard, connectCards } from '../graph.js';
 import { makeScene, sceneBounds, exportPlan, fitCamera, worldToScreen, screenToWorld, zoomAt, curveBetween, shorten } from '../scene.js';
 const viewport = { width: 390, height: 844 };
 const measure = text => text.length * 8;
+test('yazısız görsel Sade/PNG için yazısız 40×40, Tam için yüzde 75 alan kaplar', () => {
+  const graph = addCard(emptyGraph(), { x: 250, y: 200 }, 'photo').store;
+  graph.kartlar[0].fotoId = 'foto';
+  const scene = makeScene(graph, 164, measure);
+  assert.equal(scene.cards[0].label, ''); assert.equal(scene.cards[0].w, 40); assert.equal(scene.cards[0].h, 40);
+  const bounds = sceneBounds(scene, true); assert.equal(bounds.width, 164); assert.equal(bounds.height, 123);
+  assert.equal(sceneBounds(scene).width, 40);
+});
 test('kamera dünya/ekran dönüşümü ve iki parmak merkezinin sabitliği', () => {
   const camera = { x: -100, y: 200, z: .7 }, world = { x: 300, y: -80 };
   const screen = worldToScreen(world, camera, viewport);

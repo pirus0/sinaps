@@ -1,3 +1,4 @@
+import { drawBranch } from './gestures.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { execFileSync, spawn } from 'node:child_process';
@@ -26,7 +27,7 @@ try{
  await page.locator('[data-photo]').click();await page.locator('#photo-file').setInputFiles({name:'foto.png',mimeType:'image/png',buffer:Buffer.from(buffer)});
  await page.waitForFunction(key=>JSON.parse(localStorage.getItem(key)).kartlar[0].fotoId,WORKSPACE_KEY);
  const id=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).kartlar[0].fotoId,WORKSPACE_KEY);
- await page.locator('[data-card]').click();await page.getByRole('textbox',{name:'Başlık',exact:true}).fill('');await click('Tamam');await page.locator('#board').waitFor({state:'visible'});await page.locator('[data-card]').click();await click('Dal');await page.getByRole('textbox',{name:'Başlık',exact:true}).waitFor();await click('Tamam');await page.locator('#board').waitFor({state:'visible'});assert.equal(await page.locator('[data-card]').count(),1,'yalnız fotoğraflı kart korunur ve dal açabilir');
+ await page.locator('[data-card]').click();await page.getByRole('textbox',{name:'Başlık',exact:true}).fill('');await click('Tamam');await page.locator('#board').waitFor({state:'visible'});await drawBranch(page);await page.getByRole('textbox',{name:'Başlık',exact:true}).waitFor();await click('Tamam');await page.locator('#board').waitFor({state:'visible'});assert.equal(await page.locator('[data-card]').count(),1,'yalnız fotoğraflı kart korunur ve dal açabilir');
  await page.locator('[data-photo]').click();await click('Kaldır');await click('Geri al');
  await page.waitForTimeout(6600);assert.ok(await page.evaluate(async id=>!!await(await import('./photos.js')).getPhoto(id),id),'geri alınan kartın fotoğrafı silinmez');
  await page.locator('[data-card]').click();await click('Menü');await click('Sil');await click('Sil');await page.waitForTimeout(300);

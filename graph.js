@@ -10,9 +10,11 @@ const validId = id => typeof id === 'string' && id.length > 0;
 const validTime = time => typeof time === 'string' && Number.isFinite(Date.parse(time));
 export const cardTitle = card => card.baslik.trim() || card.aciklama.split('\n').find(line => line.trim())?.trim() || '…';
 export const cardText = card => card.baslik ? card.baslik + (card.aciklama ? '\n' + card.aciklama : '') : card.aciklama;
+export const hasCardText = card => !!(card.baslik.trim() || card.aciklama.trim());
+export const isImageCard = card => !!card.fotoId && !hasCardText(card);
 export const linked = (store, a, b) => store.ipler.some(ip => pairKey(ip.aId, ip.bId) === pairKey(a, b));
 export const connections = (store, id) => store.ipler.filter(ip => ip.aId === id || ip.bId === id);
-export const cardHeight = (card, width = 158) => 88 + (card.fotoId ? width * .6 : 0);
+export const cardHeight = (card, width = 158) => isImageCard(card) ? width * .75 : 88 + (card.fotoId ? width * .6 : 0);
 
 export function normalizeGraph(input, repair = true) {
   if (!input || input.surum !== 2 || !Array.isArray(input.kartlar) || !Array.isArray(input.ipler)) throw new Error('Bu dosya yedek değil.');

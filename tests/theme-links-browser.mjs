@@ -1,3 +1,4 @@
+import { drawBranch } from './gestures.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { execFileSync, spawn } from 'node:child_process';
@@ -58,7 +59,7 @@ try {
       await page.goBack(); await page.getByRole('heading', { name: 'Ayarlar', exact: true }).waitFor(); await openTheme();
       await click('Kapat'); await click('Yeni'); await page.getByRole('textbox', { name: 'Ad', exact: true }).fill('Bağ rengi'); await page.keyboard.press('Enter');
       await click('Yeni'); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Bir');
-      await click('Dal'); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('İki'); await click('Menü'); await click('Bağlar');
+      await click('Tamam'); await page.locator('#board').waitFor({ state: 'visible' }); await drawBranch(page); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('İki'); await click('Menü'); await click('Bağlar');
       const stored = () => page.evaluate(key => JSON.parse(localStorage.getItem(key)), WORKSPACE_KEY);
       for (const [value, rgb] of [['light', 'rgb(184, 70, 43)'], ['dark', 'rgb(229, 96, 63)']]) {
         // Change through the real theme control, then reopen the same connections panel.

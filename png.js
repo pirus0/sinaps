@@ -1,6 +1,7 @@
 import { brandSVG } from './brand.js';
 import { makeScene, exportPlan, shorten } from './scene.js';
 import { photoImage } from './photos.js';
+import { isImageCard } from './graph.js';
 
 export function textMeasure(font = '600 14px Geist') {
   const context = document.createElement('canvas').getContext('2d');
@@ -58,7 +59,7 @@ export async function preparePNG(store, width, options = {}) {
           context.drawImage(photo, (photo.naturalWidth - side) / 2, (photo.naturalHeight - side) / 2, side, side, left, card.y - 15, 30, 30); context.restore();
         }
         context.fillStyle = colors.ink; context.textAlign = photo ? 'left' : 'center';
-        context.fillText(shorten(card.label, card.w - (photo ? 55 : 24), measure), photo ? card.x - card.w / 2 + 43 : card.x, card.y + .5);
+        if (!isImageCard(card)) context.fillText(shorten(card.label, card.w - (photo ? 55 : 24), measure), photo ? card.x - card.w / 2 + 43 : card.x, card.y + .5);
       }
       if (scene.center) {
         context.fillStyle = colors.iris; context.beginPath(); context.arc(0, 0, 7, 0, Math.PI * 2); context.fill();

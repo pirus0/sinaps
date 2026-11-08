@@ -1,4 +1,4 @@
-import { cardTitle, linked, cardHeight } from './graph.js';
+import { cardTitle, linked, cardHeight, isImageCard } from './graph.js';
 import { cardWidth, curveBetween, worldToScreen, screenToWorld, clampCamera, zoomAt, shorten, previewLines } from './scene.js';
 import { textMeasure } from './png.js';
 import { photoURL } from './photos.js';
@@ -63,7 +63,7 @@ export class CanvasView {
     const edgeLayer = svgNode('g', { class: 'canvas-edges', 'aria-hidden': 'true' });
     const cardLayer = svgNode('g', { class: 'canvas-cards' });
     const rects = new Map(store.kartlar.map(card => {
-      const pill = Math.max(card.fotoId ? 74 : 72, Math.min(width, measurePill(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0), (width + 44) * camera.z - 8));
+      const pill = isImageCard(card) ? 40 : Math.max(card.fotoId ? 74 : 72, Math.min(width, measurePill(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0), (width + 44) * camera.z - 8));
       return [card.id, { ...card, w: sade ? pill / camera.z : width, h: sade ? 40 / camera.z : cardHeight(card, width) }];
     }));
     for (const ip of store.ipler) {
@@ -82,13 +82,13 @@ export class CanvasView {
     for (const card of store.kartlar) {
       const rect = rects.get(card.id), point = worldToScreen(card, camera, viewport);
       const scale = sade ? 1 : camera.z, w = sade ? rect.w * camera.z : width, h = sade ? 40 : cardHeight(card, width);
-      const photoHeight = !sade && card.fotoId ? w * .6 : 0;
+      const imageOnly = isImageCard(card), photoHeight = !sade && card.fotoId ? imageOnly ? h - 1.5 : w * .6 : 0;
       const unavailable = target && (card.id === target || linked(store, card.id, target));
       const wireTarget = this.wire?.target === card.id && card.id !== this.start?.id && !linked(store, this.start?.id, card.id);
       const marked = card.id === target || card.id === highlight || wireTarget;
       const moving = this.mode === 'drag' && card.id === this.original?.id;
       const group = svgNode('g', { 'data-card': card.id, role: 'button', tabindex: unavailable ? -1 : 0,
-        'aria-label': cardTitle(card), 'aria-disabled': unavailable ? 'true' : 'false',
+        'aria-label': imageOnly ? 'Görsel' : cardTitle(card), 'aria-disabled': unavailable ? 'true' : 'false',
         class: `canvas-card${marked ? ' marked' : ''}${unavailable ? ' unavailable' : ''}${moving ? ' moving' : ''}`,
         transform: `translate(${point.x} ${point.y}) scale(${scale})` });
       const hitW = Math.max(w, 44 / scale), hitH = Math.max(h, 44 / scale);
@@ -101,13 +101,14 @@ export class CanvasView {
       if (imageURL) {
         const clipId = 'photo-clip-' + clipIndex++, clip = svgNode('clipPath', { id: clipId });
         if (sade) clip.append(svgNode('circle', { cx: -w / 2 + 20, cy: 0, r: 15, fill: '#000', stroke: 'none' }));
+        else if (imageOnly) clip.append(svgNode('rect', { x: -w / 2 + .75, y: -h / 2 + .75, width: w - 1.5, height: h - 1.5, rx: 16.5, fill: '#000', stroke: 'none' }));
         else clip.append(svgNode('path', { d: `M${-w / 2 + 17} ${-h / 2 + .75}H${w / 2 - 17}Q${w / 2 - .75} ${-h / 2 + .75} ${w / 2 - .75} ${-h / 2 + 17}V${-h / 2 + photoHeight}H${-w / 2 + .75}V${-h / 2 + 17}Q${-w / 2 + .75} ${-h / 2 + .75} ${-w / 2 + 17} ${-h / 2 + .75}Z`, fill: '#000', stroke: 'none' }));
         defs.append(clip);
         surface.append(svgNode('image', { href: imageURL, x: sade ? -w / 2 + 5 : -w / 2 + .75, y: sade ? -15 : -h / 2 + .75,
           width: sade ? 30 : w - 1.5, height: sade ? 30 : photoHeight, preserveAspectRatio: 'xMidYMid slice', 'clip-path': `url(#${clipId})` }));
       }
       const titleText = shorten(cardTitle(card), w - (sade ? card.fotoId ? 55 : 24 : 28), sade ? measurePill : measureTitle);
-      surface.append(svgNode('text', { x: sade ? card.fotoId ? -w / 2 + 43 : 0 : -w / 2 + 14, y: sade ? 5 : -h / 2 + photoHeight + 28,
+      if (!imageOnly) surface.append(svgNode('text', { x: sade ? card.fotoId ? -w / 2 + 43 : 0 : -w / 2 + 14, y: sade ? 5 : -h / 2 + photoHeight + 28,
         'text-anchor': sade && !card.fotoId ? 'middle' : 'start', class: `card-title${!card.baslik ? ' fallback' : ''}` }, titleText));
       if (!sade && card.baslik) {
         for (const [index, line] of previewLines(card.aciklama, w - 28, measureBody).entries()) {

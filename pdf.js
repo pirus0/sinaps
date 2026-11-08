@@ -2,6 +2,7 @@ import { MM, SCALE, planPDF } from './pdf-layout.js';
 import { previewLines, shorten } from './scene.js';
 import { getPhoto } from './photos.js';
 import { BRAND_PATHS } from './brand.js';
+import { isImageCard } from './graph.js';
 let libraries;
 const script = path => new Promise((resolve,reject)=>{const node=document.createElement('script');node.src=new URL(path,import.meta.url);node.onload=resolve;node.onerror=()=>{node.remove();reject(new Error('PDF aracı açılamadı'));};document.head.append(node);});
 async function load() {
@@ -48,7 +49,7 @@ export async function preparePDF(store,width,title,plan=planPDF(store,width,titl
    const l=x(card.x-card.w/2),t=y(card.y-card.h/2),w=card.w*SCALE,h=card.h*SCALE;
    // SVG y points down; negate PDF y in the path to preserve its top-left geometry.
    page.drawSvgPath(roundedPath(l,-t,w,h,18*SCALE),{x:0,y:0,color:colors.surface,borderColor:colors.soft,borderWidth:.25*MM});
-   const photoH=card.fotoId?card.w*.6*SCALE:0;
+   const imageOnly=isImageCard(card),photoH=card.fotoId?(imageOnly?card.h:card.w*.6)*SCALE:0;
    if(card.fotoId){const image=images.get(card.fotoId),ratio=Math.max((w-1.5*SCALE)/image.width,photoH/image.height),iw=image.width*ratio,ih=image.height*ratio;
     // Rounded upper corners use the same card silhouette as the screen.
     page.pushOperators(P.pushGraphicsState());
@@ -57,7 +58,7 @@ export async function preparePDF(store,width,title,plan=planPDF(store,width,titl
     clip(page,l+.75*SCALE,t-photoH,w-1.5*SCALE,photoH-.75*SCALE);
     page.drawImage(image,{x:l+(w-iw)/2,y:t-photoH+(photoH-ih)/2,width:iw,height:ih});unclip(page);unclip(page);
    }
-   text(page,card.label,l+14*SCALE,t-photoH-28*SCALE,14,colors.ink,bold,w-28*SCALE);
+   if(!imageOnly)text(page,card.label,l+14*SCALE,t-photoH-28*SCALE,14,colors.ink,bold,w-28*SCALE);
    if(card.baslik){const lines=previewLines(safeText(card.aciklama),(w-28*SCALE)/SCALE,v=>font.widthOfTextAtSize(v,12)/SCALE);for(const[n,value]of lines.entries())text(page,value,l+14*SCALE,t-photoH-(49+n*19.5)*SCALE,12,colors.soft);}
   }
   page.drawCircle({x:x(0),y:y(0),size:9*SCALE,color:colors.iris});const centerLabel=shorten(title,260,v=>font.widthOfTextAtSize(v,12)/SCALE);text(page,centerLabel,x(0)-font.widthOfTextAtSize(centerLabel,12)/2,y(0)-36*SCALE,12,colors.iris);

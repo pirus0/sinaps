@@ -12,6 +12,9 @@ Derleme/kurulum gerekmez. Statik HTTPS sunum ve localhost PWA destekler.
 Tuval karesine dokun → aç; uzun bas → Adlandır/Sil. Kartı beklemeden sürükle.
 Sağ uçtan karta çek → ip; boşluğa çek → yeni dal. Uca dokun → hedef seç.
 Kart → yazı sayfası; sol üst Geri ve sağ alt Tamam kaydedip tuvale döner.
+Yazı sayfasında sol alt Görsel artısı fotoğraf ekler; görsel varsa Değiştir/Kaldır açar.
+Yazısız görsel kart saklanır: Tam'da yükseklik %75, Sade/PNG'de 40px görsel hapı.
+Yazı ve görsel yoksa kart kalmaz; son görseli kaldırınca kart/ipler Geri al ile döner.
 Sağ alttaki Yeni yalnız artı ikonudur (44px). Açıklamada Enter satır sonudur.
 Tema ilk açılışta sistemi izler; yazısız ay/güneş ikonu açık-koyu değiştirip tercihi saklar.
 Bağlar'da kırmızı Kaldır yalnız ipi kaldırır; Geri al ile döner.
@@ -20,7 +23,7 @@ Ara üst şeridi açar; X kapatır. Sade en az .38, sığmazsa bakılan yer koru
 Sade alt sağ Paylaş → Kopya/PDF/Görsel. PDF 12/14 pt, A4 ve 10 mm bindirme;
 12 sayfayı aşarsa Oluştur onayı. Paylaşım izni düşerse Gönder ile yeniden dokun.
 Ana ekranda genel arama; tuvalde arama yalnız o tuvalde. Silinen tuval Çöp'ten
-Kurtar ile döner; açılışta 30 günü dolanlar silinir. Kart silme geri alınmaz.
+Kurtar ile döner; açılışta 30 günü dolanlar silinir. Menüden kart silme geri alınmaz.
 
 ## Veri
 Kart/ip/tuval: localStorage `dallanan-not-data-v3`; görünüm ayrı v3 anahtarında.
@@ -34,6 +37,8 @@ kimlikli tuval ekler. PNG/PDF/TXT geri yüklenebilir yedek değildir.
 `npm test`; `npm run test:browser`, `test:faults`, `test:png`, `test:photos`,
 `test:pdf`, `test:library`, `test:quick`. Tarayıcı testleri yerel/global Playwright
 ve Chromium/WebKit kullanır. Ekran/PDF örnekleri `../ekran/sinaps/` içinde.
+`node tests/image-card-browser.mjs`: yazı artısı, görsel kart ve sil/geri al;
+iki tema 390px/masaüstü ekranları, gerçek PNG/PDF `../ekran/gorsel-kart/` içinde.
 Çalışma zamanı yalnız PDF için yerel pdf-lib/fontkit: `vendor/README.md`.
 Ad/simge tek kaynak `brand.js`; `npm run icons` PWA ikonlarını üretir.
 Yerel fontlar ve OFL lisansları `fonts/`; PDF 600/700 örnekleri aynı fontlardan.

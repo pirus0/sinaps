@@ -1,6 +1,6 @@
 import { STORAGE_KEY as GRAPH_KEY, LEGACY_KEY, emptyGraph, addCard, editCard,
   positionCard, connectCards, disconnect, connections, linked, deleteCard, restoreDeleted, backupJSON,
-  parseBackup, mergeGraphs, searchCards, exportText, cardTitle, cardText } from './graph.js';
+  parseBackup, mergeGraphs, searchCards, exportText, cardTitle, cardText, hasCardText } from './graph.js';
 import { cardWidth, makeScene, fitCamera, clampCamera } from './scene.js';
 import { CanvasView } from './canvas-view.js';
 import { preparePNG, textMeasure } from './png.js';
@@ -119,7 +119,7 @@ function cleanWriting() {
   const card = store.kartlar.find(item => item.id === current);
   if (card && !card.baslik.trim() && !card.aciklama.trim() && !card.fotoId) {
     const removed = deleteCard(store, current); store = removed.store; drafts.delete(current); persist();
-    if (entryCard && (entryCard.baslik.trim() || entryCard.aciklama.trim())) {
+    if (entryCard && (hasCardText(entryCard) || entryCard.fotoId)) {
       setUndo(() => restoreDeleted(store, { ...removed, card: entryCard }), 'Kart silindi');
     }
   } else if (card) persist();
@@ -345,8 +345,10 @@ function paintToolbar() {
     toolbar.lastElementChild.disabled = locked; return;
   }
   if (current) {
-    toolbar.append(button('Dal', () => createCard(current), 'button secondary', 'plus'),
-      button('Tamam', closeWriting, 'button', 'check'));
+    const card = store.kartlar.find(item => item.id === current);
+    const visual = button('Görsel', () => requestPhoto(current), 'icon-button', 'plus');
+    visual.classList.add('writing-visual'); visual.classList.toggle('has-photo', !!card?.fotoId);
+    toolbar.append(visual, button('Tamam', closeWriting, 'button', 'check'));
     toolbar.firstElementChild.disabled = locked; return;
   }
   const simple = button(view.sade ? 'Tam' : 'Sade', toggleSimple, 'icon-button', view.sade ? 'full' : 'simple'); simple.classList.add('button', 'secondary', 'round-action');
@@ -639,13 +641,16 @@ function requestPhoto(id) {
   const card = store.kartlar.find(card => card.id === id); if (!card || locked) return;
   view.highlight = null; canvas.requestDraw();
   if (!card.fotoId) { pickPhoto(id); return; }
-  photoTarget = id; openSheet('Fotoğraf', 'Fotoğraf');
+  photoTarget = id; openSheet('Görsel', 'Fotoğraf');
   const change = row('Değiştir', () => pickPhoto(id), { glyph: 'photo' });
   const remove = row('Kaldır', () => {
     const old = card.fotoId;
-    if (!persist({ ...store, kartlar: store.kartlar.map(item => { if (item.id !== id) return item; const next = { ...item, degisme: new Date().toISOString() }; delete next.fotoId; return next; }) })) return;
+    const removed = !hasCardText(card) ? deleteCard(store, id) : null;
+    const next = removed?.store || { ...store, kartlar: store.kartlar.map(item => { if (item.id !== id) return item; const next = { ...item, degisme: new Date().toISOString() }; delete next.fotoId; return next; }) };
+    if (!persist(next)) return;
+    if (removed) { drafts.delete(id); current = null; entryCard = null; }
     sheet.close(); pushRoute({ card: current, panel: null, target: null }, true); render();
-    setUndo(() => ({ ...store, kartlar: store.kartlar.map(item => item.id === id ? { ...item, fotoId: old } : item) }), 'Fotoğraf kaldırıldı'); retirePhotos([{ fotoId: old }]);
+    setUndo(() => removed ? restoreDeleted(store, removed) : ({ ...store, kartlar: store.kartlar.map(item => item.id === id ? { ...item, fotoId: old } : item) }), removed ? 'Kart silindi' : 'Fotoğraf kaldırıldı'); retirePhotos([{ fotoId: old }]);
   }, { glyph: 'delete' }); remove.classList.add('danger'); sheetContent.append(change, remove);
 }
 function viewPhoto(id) {

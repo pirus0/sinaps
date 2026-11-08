@@ -1,6 +1,12 @@
 # Sinaps doğrulama
 
 ## Güncel durum
+- Yazı sayfası Dal yerine yazısız Görsel artısı (44px, görselde iris); Değiştir/Kaldır sheet'i.
+  Yazısız görsel Tam'da %75 yükseklik, Sade/PNG'de 40×40 hap/30px yuvarlak görsel; PDF'de yazı yok.
+  Boş taslak saklanmaz; son görsel kaldırılınca kart/ipler silinir, Geri al ve 6.6sn sonrası fotoğraf
+  kalıcılığı geçti. WebKit 390×844/Chromium 1440×900 × iki tema, taşma/44px/kesilme temiz.
+  `node tests/image-card-browser.mjs`; istenen yazı/Tam/Sade ekranları `../ekran/gorsel-kart/`.
+  Gerçek PNG piksel kontrolü ve PyMuPDF ile 4 PDF'de A4/JPEG/yazısız kart doğrulandı.
 - Fotoğraf kontrolü A üçgeni: dışa bakan 16×11/1.5 çizgi, görselsiz kâğıt ve görselli iris dolgu.
   44px saydam alanın kenarından dosya seçme, ekleme/kaldırma/geri al ve taşma WebKit iPhone
   390×844 + Chromium 1440×900'de geçti; iki tema `../ekran/ucgen/`, `node tests/triangle-browser.mjs`.
@@ -16,7 +22,7 @@
 - Geri/Tamam ile anında kayıt ve tuvale dönüş; sağ alt Yeni yazısız 44×44px: WebKit iPhone 13
   390×844 ve Chromium 1440×900 geçti. Yeniden yüklemede veri, 44px ve yatay taşma sınandı;
   `node tests/navigation-browser.mjs`, kanıt `../ekran/gezinme/`.
-- 59 Node testi: v1 uyumluluk, kart/ip işlemleri, v3 tuval ayrımı/göç, geometri/PNG, PDF sayfalama,
+- 62 Node testi: v1 uyumluluk, kart/ip işlemleri, v3 tuval ayrımı/göç, geometri/PNG, PDF sayfalama,
   kopya kimlik eşlemesi, genel arama ve 30 günlük çöp sınırı.
 - 7 ana Playwright akışı: Chromium 375/430 açık-koyu, iPhone 13 390×844, masaüstü 1440;
   WebKit iPhone 13 390×844 koyu. Fotoğraf/PNG/JSON/çevrimdışı/merkez akışları geçti.
@@ -26,7 +32,9 @@
 - Tasarım karşılaştırması 1–17 kapalı (arayüz d50e20c). Kanıtlar `../ekran/sinaps/` içinde.
 
 ## Ana kullanım
-Yeni tuval → kart → Dal/Tamam, başlık Enter'ı açıklamaya geçirir, açıklama Enter'ı satır sonudur.
+Yeni tuval → kart → Görsel/Tamam; dal açık uçtan boşluğa çekilir. Başlık Enter'ı açıklamaya geçirir,
+açıklama Enter'ı satır sonudur. Dal düğmesi kullanan eski testler ortak `tests/gestures.mjs` ile
+gerçek uçtan sürüklemeye geçirildi; 7 ana + fotoğraf depo + tema/bağlar + üçgen akışları yeniden geçti.
 Boş yeni kart temizlenir; şiir boşlukları korunur. Tuval başına ayrı kamera/kartlar, kare ana ızgara,
 porttan mevcut karta ip ve boşluğa yeni dal, yinelenen ipin engellenmesi gerçek pointer akışıyla sınandı.
 Kart beklemeden hareket ediyor; nokta ızgarası kameraya bağlı. CDP iki parmak zoom, veri değişmezliği,
