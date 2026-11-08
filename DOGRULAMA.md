@@ -1,6 +1,9 @@
 # Sinaps doğrulama
 
 ## Güncel durum
+- Fotoğraf kontrolü A üçgeni: dışa bakan 16×11/1.5 çizgi, görselsiz kâğıt ve görselli iris dolgu.
+  44px saydam alanın kenarından dosya seçme, ekleme/kaldırma/geri al ve taşma WebKit iPhone
+  390×844 + Chromium 1440×900'de geçti; iki tema `../ekran/ucgen/`, `node tests/triangle-browser.mjs`.
 - Tema Ayarlar başlığında X'in solunda: aynı 44px daire/yüzey, 8px aralık; liste Yedek'le başlar.
   Ayrı satır/ayraç yok; Yedek'e geçişte ikon kalkar, geri dönüşte tek ikon gelir. WebKit iPhone
   ve Chromium masaüstü geçti; `../ekran/tema-baglar/` açık/koyu görüntüleri yenilendi.

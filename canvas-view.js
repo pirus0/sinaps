@@ -125,12 +125,10 @@ export class CanvasView {
         }
         const photo = svgNode('g', { 'data-photo': card.id, class: 'photo-control', role: 'button', tabindex: 0,
           'aria-label': 'Fotoğraf', transform: `translate(0 ${h / 2})` });
-        photo.append(svgNode('circle', { r: 22 / scale, fill: 'transparent', stroke: 'none' }),
-          svgNode('circle', { r: 13 / scale, fill: 'var(--surface)', stroke: 'var(--cerceve)', 'stroke-width': 1.5 / scale }),
-          svgNode('rect', { x: -5 / scale, y: -4 / scale, width: 10 / scale, height: 8 / scale, rx: 1 / scale,
-            fill: 'none', stroke: card.fotoId ? 'var(--iris)' : 'var(--ink-soft)', 'stroke-width': 1.2 / scale }),
-          svgNode('path', { d: `M${-3 / scale} ${2 / scale}L0 ${-1 / scale}L${4 / scale} ${3 / scale}`,
-            fill: 'none', stroke: card.fotoId ? 'var(--iris)' : 'var(--ink-soft)', 'stroke-width': 1.2 / scale }));
+        photo.append(svgNode('circle', { cy: 5.5 / scale, r: 22 / scale, fill: 'transparent', stroke: 'none' }),
+          svgNode('path', { d: `M${-7 / scale} ${1 / scale}L${7 / scale} ${1 / scale}L0 ${10 / scale}Z`,
+            fill: card.fotoId ? 'var(--iris)' : 'var(--paper)', stroke: card.fotoId ? 'var(--iris)' : 'var(--ink-soft)',
+            'stroke-width': 1.5 / scale, 'stroke-linejoin': 'round' }));
         group.append(photo);
       }
       cardLayer.append(group);
