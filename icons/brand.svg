@@ -1,10 +1,1 @@
-<!-- Dallanan Not marka simgesi: Y dal, yeni dalın ucunda iris tomurcuk. 24 ızgara, ince çizgi.
-     Gövde currentColor (ink), tomurcuk iris değişkeni. Başlıkta 24-28px. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-  <g transform="translate(-1.2 0)">
-    <path d="M12 21v-7"/>
-    <path d="M12 14c0-4-2-6.5-5.5-8"/>
-    <path d="M12 14c0-3 1.8-5 4.8-5.8"/>
-    <circle cx="18.2" cy="7.8" r="2.1" fill="#b8462b" style="fill:var(--iris,#b8462b)" stroke="none"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="#1d1b18" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 9 4.2 5.4M5.2 6.9 2.6 7.2M5.6 11.8H2.6M6.6 14.2 4.2 17.8M5.2 16.3 2.6 16M10.6 12.6C13 14 14.4 16.4 17.6 17.4M17.6 17.4 21 16M17.6 17.4 20 20.6"/><circle cx="8.2" cy="11.8" r="3" fill="#b8462b" stroke="none"/></g></svg>

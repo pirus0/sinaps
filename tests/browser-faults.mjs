@@ -4,13 +4,13 @@ import { execFileSync, spawn } from 'node:child_process';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
-import { STORAGE_KEY } from '../model.js';
+import { WORKSPACE_KEY as STORAGE_KEY } from '../workspace.js';
 
 const require = createRequire(import.meta.url);
 let pw;
 try { pw = require('playwright'); }
 catch { pw = createRequire(execFileSync('npm', ['root', '-g'], { encoding: 'utf8' }).trim() + '/package.json')('playwright'); }
-const output = fileURLToPath(new URL('../../ekran/', import.meta.url));
+const output = fileURLToPath(new URL('../../ekran/sinaps/', import.meta.url));
 await mkdir(output, { recursive: true });
 const server = spawn(process.execPath, ['server.mjs'], { cwd: fileURLToPath(new URL('../', import.meta.url)),
   env: { ...process.env, PORT: '4175' }, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -34,12 +34,9 @@ try {
   await page.locator('#brand-title').dblclick();
   assert.notEqual(await page.locator('html').getAttribute('data-theme'), beforeTheme);
   await page.locator('#brand-title').dblclick();
-  await click(page, 'Dal'); await page.getByRole('textbox', { name: 'Not', exact: true }).fill('Korunacak not\n  satır');
-  await click(page, 'Üst');
-  await page.goBack();
-  assert.equal(await page.getByRole('textbox', { name: 'Not', exact: true }).inputValue(), 'Korunacak not\n  satır');
-  await page.goForward();
-  assert.equal(await page.locator('#brand-title').count(), 1);
+  await click(page, 'Yeni'); await page.getByRole('textbox', { name: 'Ad', exact: true }).fill('Dersler'); await page.keyboard.press('Enter'); await click(page, 'Yeni'); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Korunacak not'); await page.getByRole('textbox', { name: 'Açıklama', exact: true }).fill('  satır');
+  await click(page, 'Tamam'); await page.locator('#board').waitFor({ state: 'visible' });
+  await click(page, 'Tuvaller');
   await page.evaluate(() => {
     window.shareCalls = [];
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: ({ files }) => files.length === 1 && files[0] instanceof File });
@@ -54,13 +51,13 @@ try {
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('dallanan-not-meta-v1')).sonYedek !== null);
   const shared = await page.evaluate(() => window.shareCalls[0]);
   assert.equal(shared.type, 'application/json');
-  assert.equal(JSON.parse(shared.text).data.notlar[0].metin, 'Korunacak not\n  satır');
+  assert.equal(JSON.parse(shared.text).data.kartlar[0].baslik, 'Korunacak not');
   results.push('Web Share: gerçek File sözleşmesi; iptal yedek işaretini silmez, başarı siler');
   await page.evaluate(() => Object.defineProperty(navigator, 'share', { configurable: true, value: async () => { throw new Error('Paylaşım yok'); } }));
-  assert.equal(JSON.parse(await download(() => click(page, 'Paylaş'))).data.notlar.length, 1);
+  assert.equal(JSON.parse(await download(() => click(page, 'Paylaş'))).data.kartlar.length, 1);
   results.push('Web Share hatasında dosya indirme alternatifi');
   while (await page.locator('dialog[open]').count()) await click(page, 'Kapat');
-  await click(page, 'Korunacak not');
+  await click(page, 'Dersler'); await click(page, 'Korunacak not');
   const saved = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
   await page.evaluate(key => {
     const original = Storage.prototype.setItem;
@@ -70,25 +67,25 @@ try {
     };
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false });
   }, STORAGE_KEY);
-  await page.getByRole('textbox', { name: 'Not', exact: true }).fill('Bellekte kalan yeni metin');
+  await page.getByRole('textbox', { name: 'Açıklama', exact: true }).fill('Bellekte kalan yeni metin');
   await page.waitForFunction(() => !document.querySelector('#save-error').hidden);
   assert.equal(await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY), saved);
   await page.screenshot({ path: output + 'hata-depo-dolu.png' });
-  await click(page, 'Kök'); await click(page, 'Ayarlar'); await click(page, 'Yedek');
+  await click(page, 'Tamam'); await page.locator('#board').waitFor({ state: 'visible' }); await click(page, 'Tuvaller'); await click(page, 'Ayarlar'); await click(page, 'Yedek');
   const rescue = JSON.parse(await download(() => click(page, 'Paylaş')));
-  assert.equal(rescue.data.notlar[0].metin, 'Bellekte kalan yeni metin');
+  assert.equal(rescue.data.kartlar[0].aciklama, 'Bellekte kalan yeni metin');
   results.push('Depo dolu: eski kayıt korunur, kaydedilemeyen metin yedekten kurtarılır');
   await page.reload();
-  await click(page, 'Korunacak not');
-  assert.equal(await page.getByRole('textbox', { name: 'Not', exact: true }).inputValue(), 'Korunacak not\n  satır');
-  const second = await context.newPage(); await second.goto('http://127.0.0.1:4175');
-  await page.getByRole('textbox', { name: 'Not', exact: true }).fill('Birinci sekmenin kaydı');
+  await click(page, 'Dersler'); await click(page, 'Korunacak not');
+  assert.equal(await page.getByRole('textbox', { name: 'Açıklama', exact: true }).inputValue(), '  satır');
+  const second = await context.newPage(); await second.goto('http://127.0.0.1:4175'); await click(second, 'Korunacak not');
+  await page.getByRole('textbox', { name: 'Açıklama', exact: true }).fill('Birinci sekmenin kaydı');
   await second.waitForFunction(() => !document.querySelector('#save-error').hidden);
-  assert.equal(await second.getByRole('textbox', { name: 'Not', exact: true }).getAttribute('readonly'), '');
+  assert.equal(await second.getByRole('textbox', { name: 'Açıklama', exact: true }).getAttribute('readonly'), '');
   await second.screenshot({ path: output + 'hata-iki-sekme.png' });
-  await click(second, 'Kök'); await click(second, 'Ayarlar');
+  await click(second, 'Tamam'); await second.locator('#board').waitFor({ state: 'visible' }); await click(second, 'Tuvaller'); await click(second, 'Ayarlar');
   await second.locator('#import-file').setInputFiles({ name: 'eski.json', mimeType: 'application/json', buffer: Buffer.from(shared.text) });
-  assert.equal(await page.evaluate(key => JSON.parse(localStorage.getItem(key)).notlar[0].metin, STORAGE_KEY), 'Birinci sekmenin kaydı');
+  assert.equal(await page.evaluate(key => JSON.parse(localStorage.getItem(key)).kartlar[0].aciklama, STORAGE_KEY), 'Birinci sekmenin kaydı');
   await second.close();
   results.push('İki sekme: yeni veri üzerine eski veri yazılması durdurulur');
   const brokenContext = await browser.newContext({ ...pw.devices['iPhone 13'], deviceScaleFactor: 1 });
@@ -98,7 +95,7 @@ try {
   }, STORAGE_KEY);
   const broken = await brokenContext.newPage(); await broken.goto('http://127.0.0.1:4175');
   assert.equal(await broken.evaluate(key => localStorage.getItem(key), STORAGE_KEY), '{bozuk-veri');
-  assert.equal(await broken.getByRole('button', { name: 'Dal', exact: true }).first().isDisabled(), true);
+  assert.equal(await broken.getByRole('button', { name: 'Yeni', exact: true }).first().isDisabled(), true);
   await click(broken, 'Ayarlar'); await click(broken, 'Yedek');
   const [rawFile] = await Promise.all([broken.waitForEvent('download'), click(broken, 'Paylaş')]);
   assert.equal(await readFile(await rawFile.path(), 'utf8'), '{bozuk-veri');

@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#efebe2">
   <meta name="description" content="Düz yazı notlarını dallandır. Verilerin cihazında kalır.">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Dallanan Not">
-  <title>Dallanan Not</title>
+  <meta name="apple-mobile-web-app-title" content="Sinaps">
+  <title>Sinaps</title>
   <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="./icons/favicon-32.png" sizes="32x32">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
@@ -18,10 +18,12 @@
         (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch {}
   </script>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./v2.css">
   <script type="module" src="./main.js"></script>
 </head>
 <body>
   <main id="app">
+    <div id="board"><svg id="canvas" role="group" aria-label="Tuval"></svg></div>
     <header id="header"></header>
     <div id="content"></div>
     <footer id="toolbar"></footer>
@@ -34,7 +36,8 @@
   </dialog>
   <aside id="notice" role="status" aria-live="polite" hidden></aside>
   <p id="save-error" role="alert" hidden></p>
-  <input id="import-file" type="file" accept=".json,application/json" hidden>
+  <input id="import-file" type="file" accept=".json,.sinaps,application/json" hidden>
+  <input id="photo-file" type="file" accept="image/*" hidden>
   <noscript>Notlarını açmak için JavaScript'i etkinleştir.</noscript>
 </body>
 </html>
