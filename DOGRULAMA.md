@@ -1,6 +1,9 @@
 # Sinaps doğrulama
 
 ## Güncel durum
+- Geri/Tamam ile anında kayıt ve tuvale dönüş; sağ alt Yeni yazısız 44×44px: WebKit iPhone 13
+  390×844 ve Chromium 1440×900 geçti. Yeniden yüklemede veri, 44px ve yatay taşma sınandı;
+  `node tests/navigation-browser.mjs`, kanıt `../ekran/gezinme/`.
 - 59 Node testi: v1 uyumluluk, kart/ip işlemleri, v3 tuval ayrımı/göç, geometri/PNG, PDF sayfalama,
   kopya kimlik eşlemesi, genel arama ve 30 günlük çöp sınırı.
 - 7 ana Playwright akışı: Chromium 375/430 açık-koyu, iPhone 13 390×844, masaüstü 1440;

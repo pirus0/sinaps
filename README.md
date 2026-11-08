@@ -11,7 +11,8 @@ Derleme/kurulum gerekmez. Statik HTTPS sunum ve localhost PWA destekler.
 ## Kullanım
 Tuval karesine dokun → aç; uzun bas → Adlandır/Sil. Kartı beklemeden sürükle.
 Sağ uçtan karta çek → ip; boşluğa çek → yeni dal. Uca dokun → hedef seç.
-Kart → yazı sayfası; Dal/Tamam. Açıklamada Enter satır sonudur.
+Kart → yazı sayfası; sol üst Geri ve sağ alt Tamam kaydedip tuvale döner.
+Sağ alttaki Yeni yalnız artı ikonudur (44px). Açıklamada Enter satır sonudur.
 Boşlukta kaydır, iki parmakla yakınlaştır. Kırmızı düğme/tuval adı merkeze döner.
 Ara üst şeridi açar; X kapatır. Sade en az .38, sığmazsa bakılan yer korunur.
 Sade alt sağ Paylaş → Kopya/PDF/Görsel. PDF 12/14 pt, A4 ve 10 mm bindirme;

@@ -331,7 +331,8 @@ function wireDrop(sourceId, targetId, point) {
 function paintToolbar() {
   const toolbar = $('#toolbar'); toolbar.replaceChildren(); toolbar.hidden = !!view.target || (!current && !store.kartlar.length);
   if (!activeBoard) {
-    toolbar.hidden = !library.tuvaller.some(board => !board.silinme); toolbar.append(el('span', 'spacer'), button('Yeni', createWorkspace, 'button accent', 'plus'));
+    const create = button('Yeni', createWorkspace, 'icon-button', 'plus'); create.classList.add('button', 'accent', 'new-action');
+    toolbar.hidden = !library.tuvaller.some(board => !board.silinme); toolbar.append(el('span', 'spacer'), create);
     toolbar.lastElementChild.disabled = locked; return;
   }
   if (current) {
@@ -342,8 +343,9 @@ function paintToolbar() {
   const simple = button(view.sade ? 'Tam' : 'Sade', toggleSimple, 'icon-button', view.sade ? 'full' : 'simple'); simple.classList.add('button', 'secondary', 'round-action');
   const center = button('Merkez', centerCamera, 'icon-button center-button'); center.replaceChildren(el('span', 'center-dot')); center.classList.add('button', 'secondary', 'round-action');
   const action = view.sade ? button('Paylaş', openShare, 'icon-button', 'share')
-    : button('Yeni', () => createCard(), 'button accent', 'plus');
+    : button('Yeni', () => createCard(), 'icon-button', 'plus');
   if (view.sade) action.classList.add('button', 'accent', 'round-action');
+  else action.classList.add('button', 'accent', 'new-action');
   action.disabled = locked;
   toolbar.append(simple, center, action);
 }
@@ -356,7 +358,8 @@ function render() {
   $('#app').className = current ? 'writing-route' : 'canvas-route';
   document.body.classList.toggle('canvas-page', !current); $('#board').hidden = !!current; content.className = '';
   if (current) {
-    const pill = el('div', 'toolbar-pill'); pill.append(button('Menü', openMenu, 'icon-button', 'menu')); header.append(pill);
+    const back = button('Geri', closeWriting, 'icon-button', 'left'); back.classList.add('board-back');
+    const pill = el('div', 'toolbar-pill'); pill.append(button('Menü', openMenu, 'icon-button', 'menu')); header.append(back, pill);
     const card = store.kartlar.find(item => item.id === current), panel = el('section', 'card writing-card');
     const title = el('input', 'title-input'); title.id = 'card-title'; title.type = 'text'; title.placeholder = 'Başlık';
     title.setAttribute('aria-label', 'Başlık'); title.value = card.baslik; title.readOnly = locked;
