@@ -13,6 +13,7 @@
     "test:photos": "node tests/photos-browser.mjs",
     "test:quick": "node tests/quick-sinaps.mjs",
     "test:pdf": "node tests/pdf-browser.mjs",
-    "test:library": "node tests/library-browser.mjs"
+    "test:library": "node tests/library-browser.mjs",
+    "test:revisions": "node tests/revisions-browser.mjs"
   }
 }

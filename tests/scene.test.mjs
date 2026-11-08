@@ -72,3 +72,18 @@ test('merkez: uzak grafikte origin ve ad PNG sınırında, Sade merkez noktasın
   const camera = fitCamera(scene, { width: 390, height: 844 });
   const origin = worldToScreen({ x: 0, y: 0 }, camera, { width: 390, height: 844 }); assert.ok(origin.x >= 16 && origin.y >= 112);
 });
+
+test('Sade küçük asimetrik grafikte origin tam ekran ortasında, bütün kartlar sığar', () => {
+  const viewport = { width: 390, height: 844 };
+  const store = { kartlar: [ { id: 'a', baslik: 'Yakın', aciklama: '', x: -50, y: 90 }, { id: 'b', baslik: 'Uzak', aciklama: '', x: 120, y: -60 } ], ipler: [] };
+  const scene = makeScene(store, 164, text => text.length * 8, 'Tuval');
+  const camera = fitCamera(scene, viewport);
+  assert.deepEqual(worldToScreen({ x: 0, y: 0 }, camera, viewport), { x: 195, y: 422 });
+  for (const card of scene.cards) { const point = worldToScreen(card, camera, viewport); assert.ok(point.x - card.w / 2 >= 16); assert.ok(point.x + card.w / 2 <= 374); assert.ok(point.y >= 132 && point.y <= 706); assert.ok(card.w >= 72); }
+});
+
+test('Sade büyük tuvalde en az .38: Tam odağı korunur, merkez isteği origin döndürür', () => {
+  const scene = makeScene({kartlar:[{id:'a',baslik:'Uzak',aciklama:'',x:5000,y:3000}],ipler:[]},164,measure,'Tuval');
+  assert.deepEqual(fitCamera(scene,viewport,{x:720,y:-200}),{x:720,y:-200,z:.38});
+  assert.deepEqual(fitCamera(scene,viewport),{x:0,y:0,z:.38});assert.ok(116*.38>=44);assert.equal(zoomAt({x:0,y:0,z:.38},{x:195,y:422},{x:195,y:422},.01,viewport,.38).z,.38);
+});

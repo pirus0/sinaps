@@ -13,6 +13,7 @@ Tuval karesine dokun → aç; uzun bas → Adlandır/Sil. Kartı beklemeden sür
 Sağ uçtan karta çek → ip; boşluğa çek → yeni dal. Uca dokun → hedef seç.
 Kart → yazı sayfası; Dal/Tamam. Açıklamada Enter satır sonudur.
 Boşlukta kaydır, iki parmakla yakınlaştır. Kırmızı düğme/tuval adı merkeze döner.
+Ara üst şeridi açar; X kapatır. Sade en az .38, sığmazsa bakılan yer korunur.
 Sade alt sağ Paylaş → Kopya/PDF/Görsel. PDF 12/14 pt, A4 ve 10 mm bindirme;
 12 sayfayı aşarsa Oluştur onayı. Paylaşım izni düşerse Gönder ile yeniden dokun.
 Ana ekranda genel arama; tuvalde arama yalnız o tuvalde. Silinen tuval Çöp'ten
@@ -34,3 +35,6 @@ ve Chromium/WebKit kullanır. Ekran/PDF örnekleri `../ekran/sinaps/` içinde.
 Ad/simge tek kaynak `brand.js`; `npm run icons` PWA ikonlarını üretir.
 Yerel fontlar ve OFL lisansları `fonts/`; PDF 600/700 örnekleri aynı fontlardan.
 Native iOS ve App Store adresi henüz yok; kopyanın yanındaki adres şimdilik web.
+
+Örnek: http://127.0.0.1:4173/?ornek=fotosentez mevcut notları koruyup 42 kart/54 ip
+ekler ve açar; tekrar açmak çoğaltmaz. Dosyalar `examples/` içinde.

@@ -8,6 +8,9 @@ import { encodePhoto, putPhoto, getPhoto, removePhoto, warmPhotos, photoURL, exp
 import { planPDF } from './pdf-layout.js';
 import { preparePDF } from './pdf.js';
 import { copyPayload, parseCopy, addCopy } from './copy.js';
+import { HeaderSearch } from './search-view.js';
+import { previewBoard as boardPreview } from './board-preview.js';
+import { loadSample } from './sample.js';
 import { APP_NAME } from './brand.js';
 import { shareFile, datedName, sharePrepared, downloadFile } from './files.js';
 import { $, el, button, icon, row } from './ui.js';
@@ -15,11 +18,14 @@ import { WORKSPACE_KEY as STORAGE_KEY, WORKSPACE_VIEW_KEY as VIEW_KEY, emptyWork
   boardGraph, putBoardGraph, newBoard, boardName, deleteBoard, backupWorkspace, parseWorkspace,
   mergeWorkspaces, workspaceText, searchWorkspace, trashBoard, restoreBoard, purgeExpired } from './workspace.js';
 
+const sampleRequest = new URLSearchParams(location.search).get('ornek');
 const sheet = $('#sheet'), sheetContent = $('#sheet-content');
 let store = emptyGraph(), current = null, entryCard = null, lastSaved = null, rawBroken = null, locked = false;
 let route = { card: null, panel: null, target: null }, restoring = false, panelRoute = null;
 let saveTimer, noticeTimer, undoTimer, undoAction, focusReturn, persistentRequested = false, lastBrandTap = 0;
 let photoTarget = null, renaming = false, trashOpen = false, trashTarget = null;
+let searchController = null;
+const searchQueries = { Ara: '', Genel: '' };
 let pendingImport, sceneCache = null, pngEpoch = 0;
 const drafts = new Set();
 let png = { ready: null, preparing: false, retry: false };
@@ -70,7 +76,7 @@ function setUndo(action, message) {
     if (next?.surum === 3) library = next;
     if (next && persist(next.surum === 3 ? store : next)) {
       clearUndo(); if (current && !store.kartlar.some(card => card.id === current)) current = null;
-      if (view.sade) view.camera = fitCamera(scene(), viewport());
+      if (view.sade) view.camera = fitCamera(scene(), viewport(), view.camera);
       if (sheet.open && history.state?.panel) closePanel();
       else { route = { board: activeBoard, card: current, panel: null, target: null }; history.replaceState(route, '', location.pathname); }
       render();
@@ -242,7 +248,7 @@ async function sendPNG() {
 function toggleSimple() {
   view.highlight = null; canvas.cancel();
   if (view.sade) { view.sade = false; view.camera = { ...view.tamCamera }; }
-  else { view.tamCamera = { ...view.camera }; view.sade = true; view.camera = fitCamera(scene(), viewport()); }
+  else { view.tamCamera = { ...view.camera }; view.sade = true; view.camera = fitCamera(scene(), viewport(), view.tamCamera); }
   invalidatePNG(); saveView(); render(); if (view.sade) prepareShare();
 }
 function activateWorkspace(id, { fresh = false, replace = false, record = true } = {}) {
@@ -250,9 +256,9 @@ function activateWorkspace(id, { fresh = false, replace = false, record = true }
   trashOpen = false;
   if (current) cleanWriting(); if (activeBoard) { persist(); saveView(); }
   canvas.cancel(); clearUndo(); activeBoard = id; current = null; entryCard = null; store = boardGraph(library, id);
-  const saved = viewLibrary.tuvaller[id], first = store.kartlar[0];
+  const saved = viewLibrary.tuvaller[id];
   const valid = camera => camera && [camera.x, camera.y, camera.z].every(Number.isFinite) && camera.z > 0 && camera.z <= 4;
-  view.camera = valid(saved?.camera) ? saved.camera : { x: first?.x ?? 0, y: first?.y ?? 0, z: 1 };
+  view.camera = valid(saved?.camera) ? saved.camera : { x: 0, y: 0, z: 1 };
   view.tamCamera = valid(saved?.tamCamera) ? saved.tamCamera : { ...view.camera };
   view.sade = saved?.sade === true; view.target = null; view.highlight = null;
   library = { ...library, tuvaller: library.tuvaller.map(board => board.id === id ? { ...board, sonAcilma: new Date().toISOString() } : board) };
@@ -270,29 +276,11 @@ function goHome({ record = true } = {}) {
   if (sheet.open) sheet.close(); if (record) pushRoute({ card: null, panel: null, target: null });
   render(); saveView();
 }
-function previewBoard(board, source = library) {
-  const graph = boardGraph(source, board.id), ns = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 160 100'); svg.setAttribute('aria-hidden', 'true'); svg.classList.add('board-preview');
-  if (!graph.kartlar.length) return svg;
-  const xs = [0, ...graph.kartlar.map(card => card.x)], ys = [0, ...graph.kartlar.map(card => card.y)], minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-  const scale = Math.min(140 / Math.max(1, maxX - minX), 80 / Math.max(1, maxY - minY));
-  const points = new Map(graph.kartlar.map(card => [card.id, { x: 80 + (card.x - (minX + maxX) / 2) * scale, y: 50 + (card.y - (minY + maxY) / 2) * scale }]));
-  for (const ip of graph.ipler) {
-    const a = points.get(ip.aId), b = points.get(ip.bId); if (!a || !b) continue;
-    const path = document.createElementNS(ns, 'path'); path.setAttribute('d', `M${a.x} ${a.y}C${(a.x + b.x) / 2} ${a.y} ${(a.x + b.x) / 2} ${b.y} ${b.x} ${b.y}`);
-    path.setAttribute('fill', 'none'); path.setAttribute('stroke', 'var(--ip)'); path.setAttribute('stroke-width', '1'); svg.append(path);
-  }
-  for (const point of points.values()) {
-    const dot = document.createElementNS(ns, 'circle'); dot.setAttribute('cx', point.x); dot.setAttribute('cy', point.y); dot.setAttribute('r', '2.6');
-    dot.setAttribute('fill', 'var(--ink-soft)'); dot.setAttribute('stroke', 'none'); svg.append(dot);
-  }
-  const center = document.createElementNS(ns, 'circle'); center.setAttribute('cx', 80 - (minX + maxX) / 2 * scale); center.setAttribute('cy', 50 - (minY + maxY) / 2 * scale); center.setAttribute('r', 3.5); center.setAttribute('fill', 'var(--iris)'); center.setAttribute('stroke', 'none'); svg.append(center);
-  return svg;
-}
+function previewBoard(board, source = library) { return boardPreview(board, source); }
 function renderHome() {
   $('#board').hidden = true; $('#app').className = 'home-route'; document.body.classList.remove('canvas-page');
   const header = $('#header'), content = $('#content'); header.className = ''; header.replaceChildren(); content.replaceChildren(); content.className = 'board-grid';
-  const heading = el('h1'); heading.id = 'brand-title'; heading.append(icon('brand'), document.createTextNode(APP_NAME)); heading.addEventListener('click', brandTap);
+  const heading = el('h1'); heading.id = 'brand-title'; heading.append(icon('brand'), document.createTextNode(APP_NAME)); heading.setAttribute('aria-label', APP_NAME); heading.addEventListener('click', brandTap);
   const pill = el('div', 'toolbar-pill'), settings = button('Ayarlar', openSettings, 'icon-button', 'settings');
   if (backupDue()) settings.classList.add('backup-due'); pill.append(settings, button('Ara', openGlobalSearch, 'icon-button', 'search')); header.append(heading, pill);
   for (const board of library.tuvaller.filter(board => !board.silinme).sort((a, b) => Date.parse(b.sonAcilma) - Date.parse(a.sonAcilma))) {
@@ -360,6 +348,7 @@ function paintToolbar() {
   toolbar.append(simple, center, action);
 }
 function render() {
+  searchController?.destroy(); searchController = null;
   if (trashOpen) { renderTrash(); return; }
   if (!activeBoard) { renderHome(); return; }
   if (current && !store.kartlar.some(card => card.id === current)) current = null;
@@ -456,28 +445,31 @@ function openConnections() {
     }, 'button quiet'); remove.disabled = locked; entry.append(name, remove); sheetContent.append(entry);
   }
 }
-function searchClear(wrapper, input, draw) {
-  const clear = button('Temizle', () => { input.value = ''; draw(); update(); input.focus(); }, 'icon-button', 'close'); clear.classList.add('search-clear');
-  const update = () => { clear.hidden = !input.value; }; input.addEventListener('input', update); wrapper.append(clear); update();
-}
-function openSearch() {
-  openSheet('Ara'); sheet.classList.add('tall');
-  const wrapper = el('div', 'search-field'), input = el('input', 'search'), results = el('div', 'search-results');
-  input.type = 'search'; input.placeholder = 'Ara'; input.setAttribute('aria-label', 'Ara'); input.autocomplete = 'off';
-  wrapper.append(icon('search'), input); sheetContent.append(wrapper, results);
-  const draw = () => {
-    results.replaceChildren();
-    for (const card of searchCards(store, input.value)) {
-      const result = button(cardTitle(card), () => {
-        current = null; view.target = null; view.sade = false; focusCard(card.id); view.highlight = card.id;
-        sheet.close(); pushRoute({ card: null, panel: null, target: null }, true); render();
-      }, 'search-result-card');
-      result.replaceChildren(el('span', '', cardTitle(card)), el('small', '', card.aciklama.replace(/\s+/g, ' ').slice(0, 120)));
-      results.append(result);
+function openHeaderSearch(global = false) {
+  searchController?.destroy();
+  const kind = global ? 'Genel' : 'Ara';
+  if (!restoring) { searchQueries[kind] = ''; pushRoute({ card: null, target: null, panel: kind }); }
+  searchController = new HeaderSearch({
+    header: $('#header'), query: searchQueries[kind], close: closePanel, prefix: global ? button(APP_NAME, brandTap, 'icon-button', 'brand') : button('Tuvaller', goHome, 'icon-button', 'left'),
+    change: query => { searchQueries[kind] = query; },
+    results: query => {
+      if (!global) return searchCards(store, query).map(card => ({ label: cardTitle(card), detail: card.aciklama.replace(/\s+/g, ' ').slice(0, 120), cardId: card.id }));
+      const found = searchWorkspace(library, query);
+      return [
+        ...found.boards.map(board => ({ label: boardName(library, board), detail: `${boardGraph(library, board.id).kartlar.length} kart`, boardId: board.id, glyph: 'full' })),
+        ...found.cards.map(card => ({ label: cardTitle(card), detail: boardName(library, library.tuvaller.find(board => board.id === card.tuvalId)), boardId: card.tuvalId, cardId: card.id }))
+      ];
+    },
+    select: entry => {
+      if (entry.boardId) activateWorkspace(entry.boardId, { replace: true });
+      if (entry.cardId) {
+        current = null; view.target = null; view.sade = false; focusCard(entry.cardId); view.highlight = entry.cardId;
+        pushRoute({ card: null, panel: null, target: null }, true); render();
+      }
     }
-  };
-  input.addEventListener('input', draw); searchClear(wrapper, input, draw); draw();
+  });
 }
+function openSearch() { openHeaderSearch(false); }
 function openTrash() {
   goHome({ record: false }); trashOpen = true; pushRoute({ card: null, panel: null, target: null, trash: true }); render();
 }
@@ -518,25 +510,7 @@ function sweepTrash() {
   if (activeBoard && !library.tuvaller.some(board => board.id === activeBoard)) { activeBoard = null; current = null; store = emptyGraph(); }
   if (persist()) retirePhotos(result.removedCards, 0);
 }
-function openGlobalSearch() {
-  openSheet('Ara', 'Genel'); sheet.classList.add('tall');
-  const wrapper = el('div', 'search-field'), input = el('input', 'search'), results = el('div', 'search-results');
-  input.type = 'search'; input.placeholder = 'Ara'; input.setAttribute('aria-label', 'Ara'); input.autocomplete = 'off';
-  wrapper.append(icon('search'), input); sheetContent.append(wrapper, results);
-  const draw = () => {
-    results.replaceChildren(); const found = searchWorkspace(library, input.value);
-    for (const board of found.boards) {
-      const item = button(boardName(library, board), () => activateWorkspace(board.id, { replace: true }), 'search-result-card global-board');
-      const label = el('span'); label.append(icon('full'), document.createTextNode(boardName(library, board)));
-      item.replaceChildren(label, el('small', '', `${library.kartlar.filter(card => card.tuvalId === board.id).length} kart`)); results.append(item);
-    }
-    for (const card of found.cards) {
-      const board = library.tuvaller.find(item => item.id === card.tuvalId);
-      const item = button(cardTitle(card), () => { activateWorkspace(board.id, { replace: true }); view.sade = false; focusCard(card.id); view.highlight = card.id; render(); }, 'search-result-card');
-      item.replaceChildren(el('span', '', cardTitle(card)), el('small', '', boardName(library, board))); results.append(item);
-    }
-  }; input.addEventListener('input', draw); searchClear(wrapper, input, draw); draw();
-}
+function openGlobalSearch() { openHeaderSearch(true); }
 function openSettings() {
   openSheet('Ayarlar'); const themes = el('div', 'theme-controls'); themes.setAttribute('role', 'group'); themes.setAttribute('aria-label', 'Tema');
   for (const [label, value] of [['Sistem', 'system'], ['Açık', 'light'], ['Koyu', 'dark']]) {
@@ -750,12 +724,12 @@ $('#sheet-handle').addEventListener('pointerdown', event => { dragY = event.clie
 $('#sheet-handle').addEventListener('pointerup', event => { if (event.clientY - dragY > 110) closePanel(); });
 window.visualViewport?.addEventListener('resize', updateViewport); window.visualViewport?.addEventListener('scroll', updateViewport);
 window.addEventListener('resize', () => {
-  sceneCache = null; if (view.sade) view.camera = fitCamera(scene(), viewport());
+  sceneCache = null; if (view.sade) view.camera = fitCamera(scene(), viewport(), view.camera);
   invalidatePNG(); canvas.requestDraw(); updateViewport();
 });
 function flush() { clearTimeout(saveTimer); canvas.cancel(); persist(); saveView(); }
 window.addEventListener('pagehide', flush);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); else { sweepTrash(); render(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); else { sweepTrash(); if (!searchController) render(); } });
 window.addEventListener('storage', event => {
   if ((event.key === STORAGE_KEY && event.newValue !== lastSaved) || ([LEGACY_KEY, GRAPH_KEY].includes(event.key) && lastSaved === null)) {
     locked = true; clearTimeout(saveTimer); canvas.cancel();
@@ -775,7 +749,7 @@ try {
   if (savedBoard && validCamera(savedBoard.camera)) {
     view.camera = savedBoard.camera; view.sade = savedBoard.sade === true;
     view.tamCamera = validCamera(savedBoard.tamCamera) ? savedBoard.tamCamera : { ...savedBoard.camera };
-  } else if (store.kartlar.length) { view.camera = { x: store.kartlar[0].x, y: store.kartlar[0].y, z: 1 }; view.tamCamera = { ...view.camera }; }
+  } else if (store.kartlar.length) { view.camera = { x: 0, y: 0, z: 1 }; view.tamCamera = { ...view.camera }; }
   view.camera = clampCamera(view.camera, scene(), viewport());
 } catch {
   try { rawBroken = lastSaved ?? localStorage.getItem(GRAPH_KEY) ?? localStorage.getItem(LEGACY_KEY); } catch {}
@@ -785,5 +759,16 @@ sweepTrash();
 document.title = APP_NAME; $('meta[name="apple-mobile-web-app-title"]').content = APP_NAME;
 route = { ...route, board: activeBoard }; history.replaceState(route, '', location.pathname); applyTheme(themePreference(), false); render();
 warmActivePhotos();
-document.fonts.ready.then(() => { sceneCache = null; if (view.sade) view.camera = fitCamera(scene(), viewport()); invalidatePNG(); canvas.requestDraw(); });
+document.fonts.ready.then(() => { sceneCache = null; if (view.sade) view.camera = fitCamera(scene(), viewport(), view.camera); invalidatePNG(); canvas.requestDraw(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => notice('Çevrimdışı hazırlık tamamlanamadı.'));
+
+if (sampleRequest && !locked) {
+  loadSample(library, sampleRequest).then(result => {
+    // Bring in any edits made while the local sample file was being read.
+    const graph = boardGraph(result.workspace, result.board.id);
+    library = mergeWorkspaces(library, { surum: 3, tuvaller: [result.board], kartlar: graph.kartlar, ipler: graph.ipler }).workspace;
+    if (!persist()) return;
+    activateWorkspace(result.board.id, { replace: true });
+    view.sade = false; centerCamera(); render();
+  }).catch(error => { console.warn('Örnek:', error); notice('Örnek yüklenemedi'); });
+}

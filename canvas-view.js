@@ -35,7 +35,7 @@ export class CanvasView {
     svg.addEventListener('wheel', event => {
       event.preventDefault();
       const camera = this.callbacks.state().camera, viewport = this.viewport();
-      const next = event.ctrlKey ? zoomAt(camera, this.point(event), this.point(event), Math.exp(-event.deltaY / 200), viewport)
+      const next = event.ctrlKey ? zoomAt(camera, this.point(event), this.point(event), Math.exp(-event.deltaY / 200), viewport, this.callbacks.state().sade ? .38 : .001)
         : { ...camera, x: camera.x + event.deltaX / camera.z, y: camera.y + event.deltaY / camera.z };
       this.setCamera(next, true);
     }, { passive: false });
@@ -63,7 +63,7 @@ export class CanvasView {
     const edgeLayer = svgNode('g', { class: 'canvas-edges', 'aria-hidden': 'true' });
     const cardLayer = svgNode('g', { class: 'canvas-cards' });
     const rects = new Map(store.kartlar.map(card => {
-      const pill = Math.max(card.fotoId ? 74 : 44, Math.min(width, measurePill(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0), (width + 44) * camera.z - 8));
+      const pill = Math.max(card.fotoId ? 74 : 72, Math.min(width, measurePill(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0), (width + 44) * camera.z - 8));
       return [card.id, { ...card, w: sade ? pill / camera.z : width, h: sade ? 40 / camera.z : cardHeight(card, width) }];
     }));
     for (const ip of store.ipler) {
@@ -116,11 +116,13 @@ export class CanvasView {
       }
       group.append(surface);
       if (!sade && !target && !state.locked) {
-        const port = svgNode('g', { 'data-port': card.id, class: 'card-port', transform: `translate(${w / 2} 0)`, 'aria-label': 'Bağla' });
-        port.append(svgNode('circle', { r: 22 / scale, fill: 'transparent', stroke: 'none' }),
-          svgNode('circle', { r: 6 / scale, fill: this.wire && this.start?.id === card.id ? 'var(--iris)' : 'var(--surface)',
-            stroke: this.wire && this.start?.id === card.id ? 'var(--iris)' : 'var(--ink-soft)', 'stroke-width': 1.5 / scale }));
-        group.append(port);
+        for (const side of [-1, 1]) {
+          const port = svgNode('g', { 'data-port': card.id, 'data-side': side, class: 'card-port', transform: `translate(${side * w / 2} 0)`, 'aria-label': 'Bağla', role: 'button', tabindex: 0 });
+          port.append(svgNode('circle', { r: 22 / scale, fill: 'transparent', stroke: 'none' }),
+            svgNode('circle', { r: 6 / scale, fill: this.wire && this.start?.id === card.id && this.start.side === side ? 'var(--iris)' : 'var(--surface)',
+              stroke: this.wire && this.start?.id === card.id && this.start.side === side ? 'var(--iris)' : 'var(--ink-soft)', 'stroke-width': 1.5 / scale }));
+          group.append(port);
+        }
         const photo = svgNode('g', { 'data-photo': card.id, class: 'photo-control', role: 'button', tabindex: 0,
           'aria-label': 'Fotoğraf', transform: `translate(0 ${h / 2})` });
         photo.append(svgNode('circle', { r: 22 / scale, fill: 'transparent', stroke: 'none' }),
@@ -136,7 +138,7 @@ export class CanvasView {
     if (this.wire && this.start) {
       const source = store.kartlar.find(card => card.id === this.start.id);
       if (source) {
-        const from = worldToScreen({ x: source.x + width / 2, y: source.y }, camera, viewport), to = this.wire.point, mid = (from.x + to.x) / 2;
+        const from = worldToScreen({ x: source.x + (this.start.side || 1) * width / 2, y: source.y }, camera, viewport), to = this.wire.point, mid = (from.x + to.x) / 2;
         const line = svgNode('path', { d: `M${from.x} ${from.y}C${mid} ${from.y} ${mid} ${to.y} ${to.x} ${to.y}`, fill: 'none', stroke: 'var(--iris)', 'stroke-width': 2, 'pointer-events': 'none' });
         cardLayer.append(line);
         if (!this.wire.target) cardLayer.append(svgNode('rect', { x: to.x - width * camera.z / 2, y: to.y - 44 * camera.z,
@@ -163,7 +165,7 @@ export class CanvasView {
       this.requestDraw(); return;
     }
     const id = event.target.closest('[data-card]')?.dataset.card ?? null;
-    this.start = { point, camera: { ...this.callbacks.state().camera }, id };
+    this.start = { point, camera: { ...this.callbacks.state().camera }, id, side: Number(event.target.closest('[data-port]')?.dataset.side || 1) };
     const state = this.callbacks.state();
     if (event.target.closest('[data-photo]') && !state.locked) { this.mode = 'photo-pending'; return; }
     if (event.target.closest('[data-port]') && !state.locked) { this.mode = 'wire-pending'; return; }
@@ -177,7 +179,7 @@ export class CanvasView {
     event.preventDefault(); const point = this.point(event); this.points.set(event.pointerId, point);
     if (this.mode === 'pinch') {
       const [a, b] = [...this.points.values()]; if (!b) return;
-      this.setCamera(zoomAt(this.pinch.camera, this.pinch.point, middle(a, b), distance(a, b) / this.pinch.distance, this.viewport())); return;
+      this.setCamera(zoomAt(this.pinch.camera, this.pinch.point, middle(a, b), distance(a, b) / this.pinch.distance, this.viewport(), this.callbacks.state().sade ? .38 : .001)); return;
     }
     if (this.mode === 'wire-pending' && distance(point, this.start.point) > 8) this.mode = 'wire';
     if (this.mode === 'photo-pending' && distance(point, this.start.point) > 8) this.mode = 'pan';
@@ -197,7 +199,7 @@ export class CanvasView {
       this.setCamera({ ...this.start.camera, x: this.start.camera.x - (point.x - this.start.point.x) / this.start.camera.z,
         y: this.start.camera.y - (point.y - this.start.point.y) / this.start.camera.z });
     } else if (this.mode === 'one-zoom') {
-      this.setCamera(zoomAt(this.start.camera, this.start.point, this.start.point, Math.exp(-(point.y - this.start.point.y) / 160), this.viewport()));
+      this.setCamera(zoomAt(this.start.camera, this.start.point, this.start.point, Math.exp(-(point.y - this.start.point.y) / 160), this.viewport(), this.callbacks.state().sade ? .38 : .001));
     } else if (this.mode === 'drag') this.previewDrag(point);
   }
   previewDrag(point) {

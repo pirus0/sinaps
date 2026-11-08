@@ -5,7 +5,7 @@ import { resolve, extname, sep } from 'node:path';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8', '.webmanifest': 'application/manifest+json',
+  '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.sinaps': 'application/json; charset=utf-8', '.pdf': 'application/pdf', '.webmanifest': 'application/manifest+json',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.ttf': 'font/ttf' };
 const server = createServer(async (req, res) => {
   try {

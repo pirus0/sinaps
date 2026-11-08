@@ -1,14 +1,14 @@
 # Sinaps doğrulama
 
 ## Güncel durum
-- 57 Node testi: v1 uyumluluk, kart/ip işlemleri, v3 tuval ayrımı/göç, geometri/PNG, PDF sayfalama,
+- 59 Node testi: v1 uyumluluk, kart/ip işlemleri, v3 tuval ayrımı/göç, geometri/PNG, PDF sayfalama,
   kopya kimlik eşlemesi, genel arama ve 30 günlük çöp sınırı.
 - 7 ana Playwright akışı: Chromium 375/430 açık-koyu, iPhone 13 390×844, masaüstü 1440;
   WebKit iPhone 13 390×844 koyu. Fotoğraf/PNG/JSON/çevrimdışı/merkez akışları geçti.
 - 4 ek kütüphane akışı: 375 açık, 430 koyu, WebKit 390, masaüstü; arama, kopya ve çöp.
 - 5 hata/kurtarma senaryosu; iki motorda toplam 12 PNG/göç kontrolü; fotoğraf depo testleri.
 - İki motorda gerçek PDF ve >12 onayı/Gönder; bağımsız PyMuPDF ile A4/font/Türkçe/JPEG/12–14 pt.
-- Tasarım karşılaştırması 1–16 kapalı (arayüz d494a3b). Kanıtlar `../ekran/sinaps/` içinde.
+- Tasarım karşılaştırması 1–17 kapalı (arayüz d50e20c). Kanıtlar `../ekran/sinaps/` içinde.
 
 ## Ana kullanım
 Yeni tuval → kart → Dal/Tamam, başlık Enter'ı açıklamaya geçirir, açıklama Enter'ı satır sonudur.
@@ -29,7 +29,7 @@ Bozuk kayıt doğrulaması tüm fotoğraflar yazılmadan yapılır. Kaldır/Geri
 fotoğraf korunuyor; onaylı kart silme fotoğrafı da siliyor. Başka kartlar tutuluyor.
 
 ## PNG ve dosya paylaşımı
-Negatif/uzak/kopuk üç kart: 2924×984 PNG, piksel/decode doğrulaması, ayrı sağ alt Sinaps filigranı,
+Negatif/uzak/kopuk üç kart: 2952×984 PNG, piksel/decode doğrulaması, ayrı sağ alt Sinaps filigranı,
 arka plan ve yüzeyler sınandı. 2x bütçeyi aşarsa 1x/uygun ölçek, kırpma yok. Açıklama değişikliği Sade
 PNG bitlerini değiştirmedi. Fotoğraf minyatürünün PNG'de gerçek pikselleri ve merkez/adı doğrulandı.
 Grid ekrana ait, çıktıya girmez. null Blob'da hata ve pasif Görsel; gerçek PNG File,
@@ -68,3 +68,15 @@ Fiziksel iPhone Safari ve ana ekran PWA: klavye/visualViewport, yerel Dosyalar/A
 özel .sinaps uzantısının alıcı uygulamalarda taşınması, yoğun fotoğraflı tuvalde bellek ve PDF üretim süresi.
 Gerçek A4 baskıda %100 ölçek/cetvelle bindirme kontrolü. WebKit otomasyonu işletim sistemi paylaşım
 sayfasına dosya teslimi kanıtı değildir. Native iOS/UTType/UIActivity ve App Store adresi henüz yok.
+
+## Son kullanıcı düzeltmesi
+Üst şerit araması `search-view.js`, merkezli önizleme `board-preview.js` içine ayrıldı.
+Arama ana ekranda simgeyi, tuvalde geri okunu korur; sheet açmaz, yazı alanı odaklı ve X kapanışı var.
+Ana başlık normalde 28px simge + Sinaps. İki uç da 44px alan; çizgi dokunulan taraftan çıkar.
+Merkez düğmesi iki görünümde origin'i ekranın tam ortasına getirir. Sade min .38; sığmayınca Tam odağı
+korur, kaydırılır; merkez komutu x=y=0. Önizleme origin'e göre simetrik, nokta daima tam ortada.
+
+`test:revisions`: 375 açık, 430 koyu, WebKit iPhone13 390 ve masaüstü 1440 geçti; iki taraftan yeni dal,
+merkez konumu, arama/X ve veri değişmezliği, Sade odağı/.38 alt sınırı, yatay taşma sınandı.
+Fotosentez örneği 42 kart/54 ip; yükleme bağlantısı mevcut bir tuvali koruyarak ekler, tekrarında çoğaltmaz.
+Dört bağlamda gerçek Fotosentez A4 PDF indirildi (9 sayfa). Kanıt `../ekran/duzeltme/`.

@@ -51,7 +51,7 @@ export function curveBetween(a, b, orientationWidth = 158) {
   return { start, end, c1, c2, d: `M${start.x} ${start.y}C${c1.x} ${c1.y} ${c2.x} ${c2.y} ${end.x} ${end.y}` };
 }
 export function makeScene(store, width = 158, measure = text => [...text].length * 8, title = '') {
-  const cards = store.kartlar.map(card => ({ ...card, label: cardTitle(card), w: Math.min(width, Math.max(card.fotoId ? 74 : 44, measure(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0))), h: 40 }));
+  const cards = store.kartlar.map(card => ({ ...card, label: cardTitle(card), w: Math.min(width, Math.max(card.fotoId ? 74 : 72, measure(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0))), h: 40 }));
   const map = new Map(cards.map(card => [card.id, card]));
   const edges = store.ipler.filter(ip => map.has(ip.aId) && map.has(ip.bId))
     .map(ip => ({ ...ip, ...curveBetween(map.get(ip.aId), map.get(ip.bId), width) }));
@@ -69,8 +69,15 @@ export function sceneBounds(scene, full = false) {
   const minY = Math.min(...points.map(point => point.y)), maxY = Math.max(...points.map(point => point.y));
   return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
 }
-export function fitCamera(scene, viewport) {
+export function fitCamera(scene, viewport, focus = { x: 0, y: 0 }) {
   if (!scene.cards.length) return { x: 0, y: 0, z: 1 };
+  if (scene.center) {
+    const maxX = Math.max(1, ...scene.cards.map(card => Math.abs(card.x)));
+    const maxY = Math.max(1, ...scene.cards.map(card => Math.abs(card.y)));
+    const label = Math.max(scene.center.w, ...scene.cards.map(card => card.w));
+    const z = Math.max(.001, Math.min(1, (viewport.width / 2 - 16 - label / 2) / maxX, (viewport.height / 2 - 138) / maxY));
+    return z < .38 ? { x: focus.x, y: focus.y, z: .38 } : { x: 0, y: 0, z };
+  }
   const xs = [...(scene.center ? [0] : []), ...scene.cards.map(card => card.x)], ys = [...(scene.center ? [0] : []), ...scene.cards.map(card => card.y)];
   const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
   const maxLabel = Math.max(scene.center?.w || 0, ...scene.cards.map(card => card.w));
@@ -78,9 +85,9 @@ export function fitCamera(scene, viewport) {
     (viewport.height - 112 - 118 - 40) / Math.max(1, maxY - minY)));
   return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 + 3 / z, z };
 }
-export function zoomAt(camera, oldPoint, newPoint, factor, viewport) {
+export function zoomAt(camera, oldPoint, newPoint, factor, viewport, minZoom = .001) {
   const fixed = screenToWorld(oldPoint, camera, viewport);
-  const z = clamp(camera.z * factor, .001, 4);
+  const z = clamp(camera.z * factor, minZoom, 4);
   return { x: fixed.x - (newPoint.x - viewport.width / 2) / z,
     y: fixed.y - (newPoint.y - viewport.height / 2) / z, z };
 }

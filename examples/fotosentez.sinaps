@@ -1,0 +1,804 @@
+{
+ "app": "sinaps",
+ "tur": "tuval",
+ "surum": 1,
+ "gonderim": "2026-11-09T09:00:00.000Z",
+ "tuval": {
+  "id": "t-fotosentez",
+  "ad": "Fotosentez",
+  "olusturma": "2026-11-09T09:00:00.000Z",
+  "degisme": "2026-11-09T09:00:00.000Z",
+  "sonAcilma": "2026-11-09T09:00:00.000Z"
+ },
+ "kartlar": [
+  {
+   "id": "k-kok",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Fotosentez",
+   "aciklama": "Bitkilerin, alglerin ve siyanobakterilerin ışık enerjisiyle karbondioksit ve sudan glikoz üretip oksijen açığa çıkardığı süreç.\n\n6CO₂ + 6H₂O + ışık → C₆H₁₂O₆ + 6O₂",
+   "x": 0,
+   "y": -164,
+   "kaynakId": null,
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-yer",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Nerede gerçekleşir",
+   "aciklama": "Bitkilerde fotosentez kloroplastlarda olur. Yapraktaki mezofil hücreleri kloroplast bakımından en zengin hücrelerdir.",
+   "x": 300,
+   "y": -844,
+   "kaynakId": "k-kok",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-klp",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Kloroplast",
+   "aciklama": "Çift zarlı bir organel. İçinde tilakoit adlı yassı keseler ve bunları saran stroma sıvısı bulunur. Kendi DNA'sı ve ribozomları vardır.",
+   "x": 560,
+   "y": -1018,
+   "kaynakId": "k-yer",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-til",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Tilakoit zarı",
+   "aciklama": "Işığa bağlı tepkimelerin yeri. Klorofil ve fotosistemler bu zarın içindedir. Tilakoitler üst üste dizilerek granumları oluşturur.",
+   "x": 560,
+   "y": -902,
+   "kaynakId": "k-yer",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-str",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Stroma",
+   "aciklama": "Kloroplastın iç sıvısı. Calvin döngüsü burada gerçekleşir; Rubisco başta olmak üzere döngünün enzimleri stromada bulunur.",
+   "x": 560,
+   "y": -786,
+   "kaynakId": "k-yer",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-sto",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Stoma",
+   "aciklama": "Yapraktaki gözenekler. CO₂ buradan girer, O₂ ve su buharı buradan çıkar. İki bekçi hücresi gözeneğin açılıp kapanmasını düzenler.",
+   "x": 560,
+   "y": -670,
+   "kaynakId": "k-yer",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-pig",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Pigmentler",
+   "aciklama": "Işığı soğuran moleküller. Soğurdukları renkler, fotosentezde hangi ışığın kullanıldığını belirler.",
+   "x": 300,
+   "y": -378,
+   "kaynakId": "k-kok",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-kla",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Klorofil a",
+   "aciklama": "Ana fotosentez pigmenti. En çok mavi-mor ve kırmızı ışığı soğurur, yeşili yansıtır; yapraklar bu yüzden yeşil görünür.",
+   "x": 560,
+   "y": -494,
+   "kaynakId": "k-pig",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-yrd",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Klorofil b ve karotenoitler",
+   "aciklama": "Yardımcı pigmentler: soğurdukları enerjiyi klorofil a'ya aktarırlar. Karotenoitler fazla ışığa karşı da korur. Sonbaharda klorofil yıkılınca sarı-turuncu renkleri görünür hale gelir.",
+   "x": 560,
+   "y": -378,
+   "kaynakId": "k-pig",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-spk",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Soğurma spektrumu",
+   "aciklama": "Bir pigmentin hangi dalga boylarını ne kadar soğurduğunu gösteren eğri. Fotosentez hızının dalga boyuna göre değişimi (etki spektrumu) klorofilin soğurma eğrisine benzer.",
+   "x": 560,
+   "y": -262,
+   "kaynakId": "k-pig",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-isk",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Işığa bağlı tepkimeler",
+   "aciklama": "Tilakoit zarında ışık enerjisi kimyasal enerjiye çevrilir. Ürünler ATP, NADPH ve O₂'dir; ATP ve NADPH Calvin döngüsüne gider.",
+   "x": 300,
+   "y": 88,
+   "kaynakId": "k-kok",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-ps2",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Fotosistem II",
+   "aciklama": "Işıkla uyarılan klorofil elektron verir. Eksilen elektronlar suyun parçalanmasıyla (fotoliz) yerine konur; bu sırada O₂ açığa çıkar. Fotosentezdeki oksijenin kaynağı sudur.",
+   "x": 560,
+   "y": -86,
+   "kaynakId": "k-isk",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-etz",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Elektron taşıma zinciri",
+   "aciklama": "Elektronlar Fotosistem II'den Fotosistem I'e taşınırken açığa çıkan enerjiyle tilakoit boşluğuna H⁺ iyonları pompalanır.",
+   "x": 560,
+   "y": 30,
+   "kaynakId": "k-isk",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-ps1",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Fotosistem I ve NADPH",
+   "aciklama": "Fotosistem I'de ışıkla yeniden uyarılan elektronlar, NADP⁺'yı NADPH'ye indirger. NADPH Calvin döngüsünde indirgeyici olarak kullanılır.",
+   "x": 560,
+   "y": 146,
+   "kaynakId": "k-isk",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-atp",
+   "tuvalId": "t-fotosentez",
+   "baslik": "ATP sentaz",
+   "aciklama": "Tilakoit boşluğunda biriken H⁺ iyonları, ATP sentaz enziminden geçerek stromaya geri akar. Bu akışın enerjisiyle ADP'den ATP üretilir.\n\nBu yola kemiozmoz, ışık enerjisiyle ATP üretimine de fotofosforilasyon denir. Aynı ilke mitokondride hücresel solunumda da çalışır; orada enerji kaynağı ışık değil, besinlerden gelen elektronlardır.",
+   "x": 560,
+   "y": 262,
+   "kaynakId": "k-isk",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-clv",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Calvin döngüsü",
+   "aciklama": "Stromada CO₂'nin şekere çevrildiği tepkimeler dizisi. Işık tepkimelerinin ürettiği ATP ve NADPH'yi kullanır.",
+   "x": 300,
+   "y": 728,
+   "kaynakId": "k-kok",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-ktt",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Karbon tutma",
+   "aciklama": "Rubisco, CO₂'yi beş karbonlu RuBP'ye bağlar. Oluşan altı karbonlu ara ürün hemen ikiye bölünür ve iki adet üç karbonlu 3-fosfogliserat oluşur.",
+   "x": 560,
+   "y": 438,
+   "kaynakId": "k-clv",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-ind",
+   "tuvalId": "t-fotosentez",
+   "baslik": "İndirgeme",
+   "aciklama": "3-fosfogliserat, ATP ve NADPH harcanarak gliseraldehit-3-fosfata (G3P) dönüştürülür. G3P üç karbonlu bir şekerdir.",
+   "x": 560,
+   "y": 554,
+   "kaynakId": "k-clv",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-yen",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Yenilenme",
+   "aciklama": "Oluşan G3P'nin çoğu, ATP harcanarak yeniden RuBP'ye çevrilir. Böylece döngü yeni CO₂ tutmaya hazır olur.",
+   "x": 560,
+   "y": 670,
+   "kaynakId": "k-clv",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-urn",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Ürünler",
+   "aciklama": "Döngünün her üç turunda bir G3P net kazanılır. İki G3P'den bir glikoz yapılabilir. Şeker nişasta olarak depolanır, sakkaroz olarak taşınır, selüloz yapımında kullanılır.",
+   "x": 560,
+   "y": 786,
+   "kaynakId": "k-clv",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-rub",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Rubisco",
+   "aciklama": "Karbon tutmayı yapan enzim; Dünya'da en bol bulunan protein olduğu düşünülür. Yavaş çalışır, bu yüzden bitkiler onu çok miktarda üretir.\n\nRubisco CO₂ yerine O₂'yi de bağlayabilir. Bu yan tepkimeye fotorespirasyon denir: tutulmuş karbonun bir kısmı CO₂ olarak geri kaybedilir ve enerji harcanır. Sıcak ve kurak havada yaprak içinde O₂ birikip CO₂ azaldığında bu kayıp büyür.",
+   "x": 560,
+   "y": 902,
+   "kaynakId": "k-clv",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-isz",
+   "tuvalId": "t-fotosentez",
+   "baslik": "\"Işıktan bağımsız\" adı",
+   "aciklama": "Calvin döngüsü ışığı doğrudan kullanmaz ama ışık tepkimelerinin ATP ve NADPH'sine muhtaçtır; bazı enzimleri de ışıkla etkinleşir. Bu yüzden pratikte gündüz çalışır.",
+   "x": 560,
+   "y": 1018,
+   "kaynakId": "k-clv",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-etm",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Etkileyen etmenler",
+   "aciklama": "Fotosentez hızı ışığa, CO₂'ye, sıcaklığa ve suya bağlıdır. Hızı o an en kıt olan etmen belirler.",
+   "x": -300,
+   "y": -728,
+   "kaynakId": "k-kok",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-isd",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Işık şiddeti",
+   "aciklama": "Işık arttıkça hız artar, bir noktadan sonra artış durur (doygunluk). Bu noktada başka bir etmen sınırlayıcı olmuştur.",
+   "x": -560,
+   "y": -960,
+   "kaynakId": "k-etm",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-co2",
+   "tuvalId": "t-fotosentez",
+   "baslik": "CO₂ derişimi",
+   "aciklama": "CO₂ arttıkça hız artar, sonra doygunluğa ulaşır. Seralarda CO₂ verilerek verim artırılabilir.",
+   "x": -560,
+   "y": -844,
+   "kaynakId": "k-etm",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-sck",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Sıcaklık",
+   "aciklama": "Calvin döngüsü enzimlere bağlı olduğu için hız sıcaklıkla bir noktaya kadar artar. Çok yüksek sıcaklıkta enzimlerin yapısı bozulur ve hız düşer.",
+   "x": -560,
+   "y": -728,
+   "kaynakId": "k-etm",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-su",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Su",
+   "aciklama": "Doğrudan bir hammadde olsa da su eksikliğinin asıl etkisi dolaylıdır: bitki su kaybetmemek için stomalarını kapatır, CO₂ girişi azalır.",
+   "x": -560,
+   "y": -612,
+   "kaynakId": "k-etm",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-snr",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Sınırlayıcı etmen ilkesi",
+   "aciklama": "Birden çok etmenin etkilediği bir süreçte hızı en yetersiz olan etmen belirler. F. F. Blackman 1905'te bu ilkeyi fotosentez için ortaya koydu.",
+   "x": -560,
+   "y": -496,
+   "kaynakId": "k-etm",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-uyr",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Uyarlanmalar",
+   "aciklama": "Sıcak ve kurak ortamlarda bazı bitkiler fotorespirasyonu ve su kaybını azaltan farklı karbon tutma yolları geliştirmiştir.",
+   "x": -300,
+   "y": -204,
+   "kaynakId": "k-kok",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-c4",
+   "tuvalId": "t-fotosentez",
+   "baslik": "C4 bitkileri",
+   "aciklama": "Mısır, şeker kamışı. CO₂ önce dört karbonlu bir bileşiğe bağlanır, sonra iç kısımdaki demet kını hücrelerinde Calvin döngüsüne verilir. Rubisco'nun çevresinde CO₂ yoğunlaştığı için fotorespirasyon azalır.",
+   "x": -560,
+   "y": -320,
+   "kaynakId": "k-uyr",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-cam",
+   "tuvalId": "t-fotosentez",
+   "baslik": "CAM bitkileri",
+   "aciklama": "Kaktüsler, ananas. Stomalar gece açılır, CO₂ organik asit olarak depolanır. Gündüz stomalar kapalıyken bu CO₂ Calvin döngüsüne verilir; su kaybı çok azalır.",
+   "x": -560,
+   "y": -204,
+   "kaynakId": "k-uyr",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-c3",
+   "tuvalId": "t-fotosentez",
+   "baslik": "C3 bitkileri",
+   "aciklama": "Buğday, pirinç, soya gibi çoğu bitki. CO₂ doğrudan Rubisco ile tutulur; ilk ürün üç karbonlu 3-fosfogliserat olduğu için bu adı alır.",
+   "x": -560,
+   "y": -88,
+   "kaynakId": "k-uyr",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-onm",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Önemi",
+   "aciklama": "Fotosentez hem soluduğumuz oksijenin hem de besin zincirindeki enerjinin ana kaynağıdır.",
+   "x": -300,
+   "y": 204,
+   "kaynakId": "k-kok",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-oks",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Oksijenli atmosfer",
+   "aciklama": "Siyanobakterilerin fotosentezi, yaklaşık 2,4 milyar yıl önce atmosferde oksijen birikmesine yol açtı (Büyük Oksidasyon Olayı).",
+   "x": -560,
+   "y": 88,
+   "kaynakId": "k-onm",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-bsn",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Besin zinciri",
+   "aciklama": "Fotosentez yapan canlılar üreticidir. Karadaki ve denizdeki ekosistemlerin çoğunda enerji, besin zincirine fotosentezle girer.",
+   "x": -560,
+   "y": 204,
+   "kaynakId": "k-onm",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-sln",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Hücresel solunum",
+   "aciklama": "Fotosentezin tersi gibidir: glikoz ve O₂ kullanılarak ATP üretilir, CO₂ ve su açığa çıkar. Bitkiler de gece gündüz solunum yapar.",
+   "x": -560,
+   "y": 320,
+   "kaynakId": "k-onm",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-trh",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Nasıl keşfedildi",
+   "aciklama": "Fotosentezin bugünkü tablosu yaklaşık üç yüz yıllık deneylerle parça parça kuruldu.",
+   "x": -300,
+   "y": 728,
+   "kaynakId": "k-kok",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-vh",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Van Helmont",
+   "aciklama": "1600'lerin ilk yarısında bir söğüt fidanını beş yıl saksıda büyüttü. Ağaç çok kilo aldığı halde toprak neredeyse hiç azalmadı. Kütlenin sudan geldiği sonucuna vardı; havanın payını göremedi.",
+   "x": -560,
+   "y": 496,
+   "kaynakId": "k-trh",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-prs",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Priestley ve Ingenhousz",
+   "aciklama": "Priestley (1771): kapalı kapta mumun söndürdüğü havayı bir nane dalının yeniden yanmaya elverişli hale getirdiğini gösterdi. Ingenhousz (1779): bu etkinin yalnız ışıkta ve bitkinin yeşil kısımlarında görüldüğünü buldu.",
+   "x": -560,
+   "y": 612,
+   "kaynakId": "k-trh",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-eng",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Engelmann deneyi",
+   "aciklama": "1882'de bir alg ipliğini prizmayla renklere ayrılmış ışık altında inceledi. Oksijen seven bakteriler en çok mavi ve kırmızı ışık alan bölgelerde toplandı: fotosentez en çok bu ışıklarda oluyordu.",
+   "x": -560,
+   "y": 728,
+   "kaynakId": "k-trh",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-rk",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Ruben ve Kamen",
+   "aciklama": "1941'de ağır oksijen izotopu (¹⁸O) ile işaretli su kullandılar. Açığa çıkan oksijenin CO₂'den değil sudan geldiğini gösterdiler.",
+   "x": -560,
+   "y": 844,
+   "kaynakId": "k-trh",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "k-mcl",
+   "tuvalId": "t-fotosentez",
+   "baslik": "Melvin Calvin",
+   "aciklama": "Calvin, Benson ve Bassham 1940'ların sonu ile 1950'lerin başında radyoaktif karbon (¹⁴C) ile karbonun izlediği yolu adım adım çıkardı. Calvin 1961 Nobel Kimya Ödülü'nü aldı.",
+   "x": -560,
+   "y": 960,
+   "kaynakId": "k-trh",
+   "olusturma": "2026-11-09T09:00:00.000Z",
+   "degisme": "2026-11-09T09:00:00.000Z"
+  }
+ ],
+ "ipler": [
+  {
+   "id": "i-yer",
+   "aId": "k-kok",
+   "bId": "k-yer",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-klp",
+   "aId": "k-yer",
+   "bId": "k-klp",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-til",
+   "aId": "k-yer",
+   "bId": "k-til",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-str",
+   "aId": "k-yer",
+   "bId": "k-str",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-sto",
+   "aId": "k-yer",
+   "bId": "k-sto",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-pig",
+   "aId": "k-kok",
+   "bId": "k-pig",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-kla",
+   "aId": "k-pig",
+   "bId": "k-kla",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-yrd",
+   "aId": "k-pig",
+   "bId": "k-yrd",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-spk",
+   "aId": "k-pig",
+   "bId": "k-spk",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-isk",
+   "aId": "k-kok",
+   "bId": "k-isk",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-ps2",
+   "aId": "k-isk",
+   "bId": "k-ps2",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-etz",
+   "aId": "k-isk",
+   "bId": "k-etz",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-ps1",
+   "aId": "k-isk",
+   "bId": "k-ps1",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-atp",
+   "aId": "k-isk",
+   "bId": "k-atp",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-clv",
+   "aId": "k-kok",
+   "bId": "k-clv",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-ktt",
+   "aId": "k-clv",
+   "bId": "k-ktt",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-ind",
+   "aId": "k-clv",
+   "bId": "k-ind",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-yen",
+   "aId": "k-clv",
+   "bId": "k-yen",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-urn",
+   "aId": "k-clv",
+   "bId": "k-urn",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-rub",
+   "aId": "k-clv",
+   "bId": "k-rub",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-isz",
+   "aId": "k-clv",
+   "bId": "k-isz",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-etm",
+   "aId": "k-kok",
+   "bId": "k-etm",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-isd",
+   "aId": "k-etm",
+   "bId": "k-isd",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-co2",
+   "aId": "k-etm",
+   "bId": "k-co2",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-sck",
+   "aId": "k-etm",
+   "bId": "k-sck",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-su",
+   "aId": "k-etm",
+   "bId": "k-su",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-snr",
+   "aId": "k-etm",
+   "bId": "k-snr",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-uyr",
+   "aId": "k-kok",
+   "bId": "k-uyr",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-c4",
+   "aId": "k-uyr",
+   "bId": "k-c4",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-cam",
+   "aId": "k-uyr",
+   "bId": "k-cam",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-c3",
+   "aId": "k-uyr",
+   "bId": "k-c3",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-onm",
+   "aId": "k-kok",
+   "bId": "k-onm",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-oks",
+   "aId": "k-onm",
+   "bId": "k-oks",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-bsn",
+   "aId": "k-onm",
+   "bId": "k-bsn",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-sln",
+   "aId": "k-onm",
+   "bId": "k-sln",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-trh",
+   "aId": "k-kok",
+   "bId": "k-trh",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-vh",
+   "aId": "k-trh",
+   "bId": "k-vh",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-prs",
+   "aId": "k-trh",
+   "bId": "k-prs",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-eng",
+   "aId": "k-trh",
+   "bId": "k-eng",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-rk",
+   "aId": "k-trh",
+   "bId": "k-rk",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-mcl",
+   "aId": "k-trh",
+   "bId": "k-mcl",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-str-clv",
+   "aId": "k-str",
+   "bId": "k-clv",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-til-isk",
+   "aId": "k-til",
+   "bId": "k-isk",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-atp-ind",
+   "aId": "k-atp",
+   "bId": "k-ind",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-ps1-ind",
+   "aId": "k-ps1",
+   "bId": "k-ind",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-ps2-rk",
+   "aId": "k-ps2",
+   "bId": "k-rk",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-rub-c4",
+   "aId": "k-rub",
+   "bId": "k-c4",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-sto-cam",
+   "aId": "k-sto",
+   "bId": "k-cam",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-sto-su",
+   "aId": "k-sto",
+   "bId": "k-su",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-mcl-clv",
+   "aId": "k-mcl",
+   "bId": "k-clv",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-eng-kla",
+   "aId": "k-eng",
+   "bId": "k-kla",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-spk-eng",
+   "aId": "k-spk",
+   "bId": "k-eng",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-sck-rub",
+   "aId": "k-sck",
+   "bId": "k-rub",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  },
+  {
+   "id": "i-sln-atp",
+   "aId": "k-sln",
+   "bId": "k-atp",
+   "olusturma": "2026-11-09T09:00:00.000Z"
+  }
+ ],
+ "fotolar": []
+}

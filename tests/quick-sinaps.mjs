@@ -23,7 +23,7 @@ try {
   assert.equal(await page.title(), 'Sinaps');
   await createBoard('Dersler', 'Fizik');
   const source = await page.locator('#canvas [data-card]').first().getAttribute('data-card');
-  const port = await page.locator('#canvas [data-port]').first().boundingBox();
+  const port = await page.locator('#canvas [data-port][data-side="1"]').first().boundingBox();
   await page.mouse.move(port.x + port.width / 2, port.y + port.height / 2); await page.mouse.down();
   await page.mouse.move(230, 600, { steps: 5 }); await page.mouse.up();
   await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Kuvvet');
@@ -32,8 +32,8 @@ try {
   assert.equal(data.kartlar.length, 2); assert.equal(data.ipler.length, 1);
   const box = await page.locator(`#canvas [data-card="${source}"]`).boundingBox();
   const before = data.kartlar.find(card => card.id === source);
-  await page.mouse.move(box.x + 4, box.y + box.height / 2); await page.mouse.down();
-  await page.mouse.move(box.x + 35, box.y + box.height / 2 + 50, { steps: 5 }); await page.mouse.up();
+  await page.mouse.move(box.x + box.width / 2, box.y + 4); await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 31, box.y + 54, { steps: 5 }); await page.mouse.up();
   data = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), WORKSPACE_KEY);
   const moved = data.kartlar.find(card => card.id === source); assert.ok(moved.x !== before.x || moved.y !== before.y);
   await click('Yeni'); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Enerji'); await click('Tamam');
@@ -42,7 +42,7 @@ try {
   data = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), WORKSPACE_KEY);
   const energy = data.kartlar.find(card => card.baslik === 'Enerji').id;
   const connectExisting = async () => {
-    const from = await page.locator(`[data-port="${energy}"]`).boundingBox();
+    const from = await page.locator(`[data-port="${energy}"][data-side="1"]`).boundingBox();
     const to = await page.locator(`[data-card="${source}"]`).boundingBox();
     await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2); await page.mouse.down();
     await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 5 }); await page.mouse.up();

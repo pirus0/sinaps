@@ -61,7 +61,7 @@ async function run(browser, name) {
     await click(page, 'Kapat'); await click(page, 'Tam'); await click(page, 'Sade'); await ready(page); await click(page, 'Paylaş');
     assert.equal(await page.locator('#canvas .card-description').count(), 0);
     const buffer = await download(page, () => click(page, 'Görsel'));
-    assert.equal(buffer.readUInt32BE(16), 2924); assert.equal(buffer.readUInt32BE(20), 984);
+    assert.equal(buffer.readUInt32BE(16), 2952); assert.equal(buffer.readUInt32BE(20), 984);
     await writeFile(output + `${name}-png-butun.png`, buffer);
     const pixels = await page.evaluate(async base64 => {
       const image = new Image(); image.src = 'data:image/png;base64,' + base64; await image.decode();
@@ -80,7 +80,7 @@ async function run(browser, name) {
     assert.deepEqual(pixels.background, [239, 235, 226, 255]);
     for (const card of pixels.cards) assert.deepEqual(card, [250, 248, 243, 255]);
     assert.ok(pixels.mark > 20); assert.deepEqual(pixels.corner, pixels.background);
-    results.push({ name, check: 'PNG decode: negatif/uzak/kopuk 3 kart, tüm sınır, 2x→1x, ayrı sağ-alt filigran', pass: true, size: [2924, 984] });
+    results.push({ name, check: 'PNG decode: negatif/uzak/kopuk 3 kart, tüm sınır, 2x→1x, ayrı sağ-alt filigran', pass: true, size: [2952, 984] });
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'canShare', { configurable: true, value: ({ files }) => files.length === 1 && files[0] instanceof File && files[0].type === 'image/png' });
       Object.defineProperty(navigator, 'share', { configurable: true, value: async () => { throw new DOMException('İzin', 'NotAllowedError'); } });
