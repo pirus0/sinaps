@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emptyGraph, addCard, editCard, positionCard, connectCards, disconnect, deleteCard, restoreDeleted,
-  normalizeGraph, migrateV1, loadGraph, saveGraph, STORAGE_KEY, LEGACY_KEY, backupJSON, parseBackup,
+  normalizeGraph, migrateV1, loadGraph, STORAGE_KEY, LEGACY_KEY, backupJSON, parseBackup,
   mergeGraphs, searchCards, exportText, cardText, cardHeight, isImageCard } from '../graph.js';
-import { emptyStore, addNote } from '../model.js';
+import { emptyStore, addNote } from './v1-fixture.mjs';
 
 function fixture() {
   let graph = addCard(emptyGraph(), { baslik: 'Fizik', aciklama: 'Ders notları' }, 'a').store;
@@ -75,7 +75,7 @@ test('v1→v2: ilk dolu satır başlık, öndeki boş satırlar ve eski ham depo
   const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
   const graph = loadGraph(storage);
   assert.equal(graph.kartlar[0].baslik, 'Şiir'); assert.equal(graph.kartlar[0].aciklama, '\n\n  dize');
-  saveGraph(storage, graph);
+  storage.setItem(STORAGE_KEY, JSON.stringify(graph));
   assert.equal(values.get(LEGACY_KEY), JSON.stringify(legacy));
   assert.deepEqual(loadGraph(storage), graph);
 });

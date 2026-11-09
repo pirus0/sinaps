@@ -6,7 +6,7 @@ import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { LEGACY_KEY, emptyGraph, addCard, connectCards, backupJSON } from '../graph.js';
 import { WORKSPACE_KEY as STORAGE_KEY, fromGraph } from '../workspace.js';
-import { emptyStore, addNote } from '../model.js';
+import { emptyStore, addNote } from './v1-fixture.mjs';
 
 const require = createRequire(import.meta.url);
 let pw;

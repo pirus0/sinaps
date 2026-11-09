@@ -149,7 +149,6 @@ export function loadGraph(storage) {
   const legacy = storage.getItem(LEGACY_KEY);
   return legacy === null ? emptyGraph() : migrateV1(JSON.parse(legacy));
 }
-export const saveGraph = (storage, store) => storage.setItem(STORAGE_KEY, JSON.stringify(store));
 export const backupJSON = store => JSON.stringify({ app: 'dallanan-not', version: 2, exportedAt: now(),
   data: { surum: 2, kartlar: store.kartlar, ipler: store.ipler } }, null, 2);
 export function parseBackup(text) {
