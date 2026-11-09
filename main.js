@@ -4,7 +4,7 @@ import { STORAGE_KEY as GRAPH_KEY, LEGACY_KEY, emptyGraph, addCard, editCard,
 import { cardWidth, makeScene, fitCamera, clampCamera, shorten } from './scene.js';
 import { CanvasView } from './canvas-view.js';
 import { preparePNG, textMeasure } from './png.js';
-import { encodePhoto, putPhoto, getPhoto, removePhoto, warmPhotos, photoURL, exportPhotos, importPhotos } from './photos.js';
+import { encodePhoto, putPhoto, getPhoto, removePhoto, warmPhotos, releasePhotos, photoURL, exportPhotos, importPhotos } from './photos.js';
 import { planPDF } from './pdf-layout.js';
 import { arrangeForPrint, cutCards } from './pdf-arrange.js';
 import { preparePDF } from './pdf.js';
@@ -314,6 +314,7 @@ function goHome({ record = true } = {}) {
   if (current) cleanWriting(); if (activeBoard) { persist(); saveView(); }
   if (activeBoard && draftBoards.has(activeBoard) && !store.kartlar.length) { library = deleteBoard(library, activeBoard); draftBoards.delete(activeBoard); }
   trashOpen = false; canvas.cancel(); clearUndo(); activeBoard = null; current = null; entryCard = null; store = emptyGraph(); view.target = null; view.sade = false;
+  releasePhotos();
   if (sheet.open) sheet.close(); if (record) pushRoute({ card: null, panel: null, target: null });
   render(); saveView();
 }
@@ -660,6 +661,8 @@ function centerCamera() {
   if (!view.sade) view.tamCamera = { ...view.camera }; saveView(); canvas.draw();
 }
 function warmActivePhotos() {
+  // Only the open board's photos stay decoded; leaving a board frees the rest.
+  releasePhotos(store.kartlar.map(card => card.fotoId).filter(Boolean));
   warmPhotos(store.kartlar).then(() => { canvas.requestDraw(); if (current) render(); }).catch(() => notice('Fotoğraf açılamadı. Yedekten yükleyebilirsin.'));
 }
 function retirePhotos(cards, delay = 6500) {
