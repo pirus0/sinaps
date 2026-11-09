@@ -1,6 +1,6 @@
-const CACHE = 'dallanan-not-shell-v6';
+const CACHE = 'dallanan-not-shell-v7';
 const SHELL = ['./', './index.html', './styles.css', './main.js', './model.js', './files.js',
-  './v2.css', './graph.js', './workspace.js', './photos.js', './copy.js', './pdf.js', './pdf-layout.js', './vendor/pdf-lib-1.17.1.min.js', './vendor/fontkit-1.1.1.min.js', './scene.js', './canvas-view.js', './png.js', './brand.js', './ui.js', './search-view.js', './board-preview.js', './sample.js', './examples/fotosentez.sinaps', './examples/fotosentez-yedek.json',
+  './v2.css', './graph.js', './workspace.js', './photos.js', './copy.js', './pdf.js', './pdf-layout.js', './pdf-arrange.js', './vendor/pdf-lib-1.17.1.min.js', './vendor/fontkit-1.1.1.min.js', './scene.js', './canvas-view.js', './png.js', './brand.js', './ui.js', './search-view.js', './board-preview.js', './sample.js', './examples/fotosentez.sinaps', './examples/fotosentez-yedek.json',
   './manifest.webmanifest', './icons/brand.svg', './icons/icon-192.png', './icons/icon-512.png',
   './icons/apple-touch-icon.png', './icons/favicon.svg', './icons/favicon-32.png',
   './fonts/Geist.ttf', './fonts/Geist-SemiBold.ttf', './fonts/Bricolage-Bold.ttf', './fonts/BricolageGrotesque.ttf'];

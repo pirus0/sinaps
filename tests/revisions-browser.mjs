@@ -49,7 +49,7 @@ try {
     // Each side gets the same direct-target gesture, with a curve starting on that side.
     for (const side of [-1, 1]) {
       const port = page.locator(`[data-port="${selectedId}"][data-side="${side}"]`), box = await port.boundingBox();
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.mouse.move(width / 2 + 130, 610, { steps: 5 });
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.mouse.move(width / 2 + side * 130, 610, { steps: 5 }); // cards stay where dropped, so each side uses its own empty spot
       const wire = await page.locator('#canvas .canvas-cards>path').last().getAttribute('d'); assert.ok(wire.startsWith('M')); const from = wire.match(/^M([^ ]+) ([^C]+)/); assert.ok(Math.abs(Number(from[1]) - (box.x + box.width / 2)) < .1); assert.ok(Math.abs(Number(from[2]) - (box.y + box.height / 2)) < .1);
       await page.mouse.up(); await page.getByRole('textbox', { name: 'Başlık', exact: true }).waitFor(); await page.getByRole('textbox', { name: 'Başlık', exact: true }).fill('Uç ' + side); await click('Tamam'); await page.locator('#board').waitFor({ state: 'visible' });
       if (side === -1) { await click('Ara'); await page.getByRole('searchbox').fill('Rubisco'); await page.locator('.search-result-card').first().click(); }

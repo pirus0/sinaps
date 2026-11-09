@@ -2,6 +2,9 @@ import { cardTitle, linked, cardHeight, isImageCard } from './graph.js';
 import { cardWidth, curveBetween, worldToScreen, screenToWorld, clampCamera, zoomAt, shorten, previewLines } from './scene.js';
 import { textMeasure } from './png.js';
 import { photoURL } from './photos.js';
+// Screen width (px) a card needs before each part is drawn; parts vanish in this order when zooming out.
+// Print is unaffected: pdf.js draws every part at full size.
+const LOD = Object.freeze({ description: 120, controls: 90, photo: 64, title: 40, edges: 16, outline: 16, dot: 8 });
 
 const NS = 'http://www.w3.org/2000/svg';
 function svgNode(tag, attributes = {}, text) {
@@ -66,10 +69,14 @@ export class CanvasView {
       const pill = isImageCard(card) ? 40 : Math.max(card.fotoId ? 74 : 72, Math.min(width, measurePill(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0), (width + 44) * camera.z - 8));
       return [card.id, { ...card, w: sade ? pill / camera.z : width, h: sade ? 40 / camera.z : cardHeight(card, width) }];
     }));
-    for (const ip of store.ipler) {
+    const cull = 48, edgesShown = sade || width * camera.z >= LOD.edges;
+    for (const ip of edgesShown ? store.ipler : []) {
       const a = rects.get(ip.aId), b = rects.get(ip.bId); if (!a || !b) continue;
       const curve = curveBetween(a, b, width);
       const points = [curve.start, curve.c1, curve.c2, curve.end].map(point => worldToScreen(point, camera, viewport));
+      // A Bezier curve stays inside its control points' box; skip curves wholly off screen.
+      const xs = points.map(point => point.x), ys = points.map(point => point.y);
+      if (Math.max(...xs) < -cull || Math.min(...xs) > viewport.width + cull || Math.max(...ys) < -cull || Math.min(...ys) > viewport.height + cull) continue;
       edgeLayer.append(svgNode('path', { d: `M${points[0].x} ${points[0].y}C${points[1].x} ${points[1].y} ${points[2].x} ${points[2].y} ${points[3].x} ${points[3].y}`,
         fill: 'none', stroke: 'var(--ip)', 'stroke-width': 1.5, 'vector-effect': 'non-scaling-stroke', 'stroke-linecap': 'round' }));
     }
@@ -82,6 +89,11 @@ export class CanvasView {
     for (const card of store.kartlar) {
       const rect = rects.get(card.id), point = worldToScreen(card, camera, viewport);
       const scale = sade ? 1 : camera.z, w = sade ? rect.w * camera.z : width, h = sade ? 40 : cardHeight(card, width);
+      // Only cards on screen are built; panning a large board stays cheap.
+      const halfW = w * scale / 2 + cull, halfH = h * scale / 2 + cull, moving0 = this.mode === 'drag' && card.id === this.original?.id;
+      if (!moving0 && (point.x + halfW < 0 || point.x - halfW > viewport.width || point.y + halfH < 0 || point.y - halfH > viewport.height)) continue;
+      // Level of detail (LOD): as a card shrinks on screen its parts fade out in a fixed order.
+      const screenW = w * scale, shows = part => sade || screenW >= LOD[part];
       const imageOnly = isImageCard(card), photoHeight = !sade && card.fotoId ? imageOnly ? h - 1.5 : w * .6 : 0;
       const unavailable = target && (card.id === target || linked(store, card.id, target));
       const wireTarget = this.wire?.target === card.id && card.id !== this.start?.id && !linked(store, this.start?.id, card.id);
@@ -94,10 +106,14 @@ export class CanvasView {
       const hitW = Math.max(w, 44 / scale), hitH = Math.max(h, 44 / scale);
       group.append(svgNode('rect', { x: -hitW / 2, y: -hitH / 2, width: hitW, height: hitH, fill: 'transparent', class: 'card-hit' }));
       const surface = svgNode('g', { class: 'card-surface', transform: moving ? 'scale(1.04)' : 'scale(1)' });
+      if (!shows('dot')) {
+        surface.append(svgNode('circle', { r: Math.min(3, Math.max(1, screenW / 3)) / scale, fill: marked ? 'var(--iris)' : 'var(--ink-soft)', stroke: 'none' }));
+        group.append(surface); cardLayer.append(group); continue;
+      }
       surface.append(svgNode('rect', { x: -w / 2, y: -h / 2, width: w, height: h, rx: sade ? 14 : 18,
-        fill: 'var(--surface)', stroke: marked ? 'var(--iris)' : !sade ? 'var(--cerceve)' : 'none',
+        fill: shows('outline') || marked ? 'var(--surface)' : 'var(--ink-faint)', stroke: marked ? 'var(--iris)' : !sade && shows('outline') ? 'var(--cerceve)' : 'none',
         'stroke-width': wireTarget ? 2.5 : marked ? 2 : 1.5, 'vector-effect': 'non-scaling-stroke' }));
-      const imageURL = card.fotoId && photoURL(card.fotoId);
+      const imageURL = shows('photo') && card.fotoId && photoURL(card.fotoId);
       if (imageURL) {
         const clipId = 'photo-clip-' + clipIndex++, clip = svgNode('clipPath', { id: clipId });
         if (sade) clip.append(svgNode('circle', { cx: -w / 2 + 20, cy: 0, r: 15, fill: '#000', stroke: 'none' }));
@@ -107,16 +123,16 @@ export class CanvasView {
         surface.append(svgNode('image', { href: imageURL, x: sade ? -w / 2 + 5 : -w / 2 + .75, y: sade ? -15 : -h / 2 + .75,
           width: sade ? 30 : w - 1.5, height: sade ? 30 : photoHeight, preserveAspectRatio: 'xMidYMid slice', 'clip-path': `url(#${clipId})` }));
       }
-      const titleText = shorten(cardTitle(card), w - (sade ? card.fotoId ? 55 : 24 : 28), sade ? measurePill : measureTitle);
-      if (!imageOnly) surface.append(svgNode('text', { x: sade ? card.fotoId ? -w / 2 + 43 : 0 : -w / 2 + 14, y: sade ? 5 : -h / 2 + photoHeight + 28,
+      const titleText = shows('title') && !imageOnly ? shorten(cardTitle(card), w - (sade ? card.fotoId ? 55 : 24 : 28), sade ? measurePill : measureTitle) : '';
+      if (!imageOnly && shows('title')) surface.append(svgNode('text', { x: sade ? card.fotoId ? -w / 2 + 43 : 0 : -w / 2 + 14, y: sade ? 5 : -h / 2 + photoHeight + 28,
         'text-anchor': sade && !card.fotoId ? 'middle' : 'start', class: `card-title${!card.baslik ? ' fallback' : ''}` }, titleText));
-      if (!sade && card.baslik) {
+      if (!sade && card.baslik && shows('description')) {
         for (const [index, line] of previewLines(card.aciklama, w - 28, measureBody).entries()) {
           surface.append(svgNode('text', { x: -w / 2 + 14, y: -h / 2 + photoHeight + 49 + index * 19.5, class: 'card-description' }, line));
         }
       }
       group.append(surface);
-      if (!sade && !target && !state.locked) {
+      if (!sade && !target && !state.locked && shows('controls')) {
         for (const side of [-1, 1]) {
           const port = svgNode('g', { 'data-port': card.id, 'data-side': side, class: 'card-port', transform: `translate(${side * w / 2} 0)`, 'aria-label': 'Bağla', role: 'button', tabindex: 0 });
           port.append(svgNode('circle', { r: 22 / scale, fill: 'transparent', stroke: 'none' }),
@@ -211,7 +227,7 @@ export class CanvasView {
     if (point) {
       const viewport = this.viewport(), camera = this.callbacks.state().camera;
       const velocity = (value, max, low = 36, high = max - 36) => value < low ? -(low - value) / 5 : value > high ? (value - high) / 5 : 0;
-      const dx = velocity(point.x, viewport.width), dy = velocity(point.y, viewport.height, 112, viewport.height - 118);
+      const short = viewport.height < 500, dx = velocity(point.x, viewport.width), dy = velocity(point.y, viewport.height, short ? 56 : 112, viewport.height - (short ? 64 : 118));
       if (dx || dy) { this.setCamera({ ...camera, x: camera.x + dx / camera.z, y: camera.y + dy / camera.z }); this.previewDrag(point); }
     }
     this.edgeFrame = requestAnimationFrame(() => this.autoEdge());

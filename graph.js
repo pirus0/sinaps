@@ -96,8 +96,8 @@ export function editCard(store, id, baslik, aciklama) {
 }
 export function positionCard(store, id, x, y, width = 158) {
   if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error('Geçersiz konum.');
-  const position = vacantPosition(store, x, y, width, id);
-  return { ...store, kartlar: store.kartlar.map(card => card.id === id ? { ...card, ...position, degisme: now() } : card) };
+  // Manual placement: the card stays exactly where it was dropped.
+  return { ...store, kartlar: store.kartlar.map(card => card.id === id ? { ...card, x, y, degisme: now() } : card) };
 }
 export function connectCards(store, aId, bId, id = crypto.randomUUID()) {
   const ids = new Set(store.kartlar.map(card => card.id));

@@ -50,11 +50,11 @@ test('v2 kart silme: yalnız kart+ip gider, kaynak çocukları kalır; geri al e
   assert.equal(restored.kartlar.find(card => card.id === 'b').kaynakId, 'a');
   assert.equal(restored.kartlar.find(card => card.id === 'b').aciklama, 'korunur');
 });
-test('v2 kart hareketi: çakışma çözülür, diğer kartlar yerinde kalır', () => {
+test('v2 kart hareketi: tamamen elle, bırakılan yerde kalır, diğer kartlar yerinde kalır', () => {
   const graph = fixture();
   const moved = positionCard(graph, 'c', 0, 0);
   const card = moved.kartlar.find(item => item.id === 'c');
-  assert.ok(Math.abs(card.x) >= 174 || Math.abs(card.y) >= 104);
+  assert.equal(card.x, 0); assert.equal(card.y, 0);
   assert.deepEqual(moved.kartlar.slice(0, 2), graph.kartlar.slice(0, 2));
   assert.throws(() => positionCard(graph, 'c', NaN, 0));
 });
