@@ -20,6 +20,9 @@ export class CanvasView {
   constructor(svg, callbacks) {
     this.svg = svg; this.callbacks = callbacks; this.points = new Map(); this.mode = 'idle';
     this.lastTap = null; this.longTimer = null; this.edgeFrame = null; this.drawFrame = null;
+    // iOS Safari keeps sending a touch's events to the element first touched; if a redraw
+    // detaches it, the moves never reach the svg. Held targets stay attached until release.
+    this.held = new Map();
     svg.addEventListener('pointerdown', event => this.down(event));
     svg.addEventListener('pointermove', event => this.move(event));
     svg.addEventListener('pointerup', event => this.up(event));
@@ -165,12 +168,15 @@ export class CanvasView {
     centerLayer.append(svgNode('circle', { r: 15, fill: 'var(--iris-soft)', stroke: 'none' }), svgNode('circle', { r: 9, fill: 'var(--iris)', stroke: 'none' }));
     const label = shorten(state.title || '', Math.min(260, viewport.width - 32), measureBody), labelWidth = measureBody(label) + 12;
     centerLayer.append(svgNode('rect', { x: -labelWidth / 2, y: 22, width: labelWidth, height: 22, rx: 4, fill: 'var(--paper)', stroke: 'none' }), svgNode('text', { x: 0, y: 37, 'text-anchor': 'middle', fill: 'var(--iris)', stroke: 'none', 'font-size': 13, 'font-weight': 600 }, label));
-    this.svg.replaceChildren(defs, edgeLayer, centerLayer, cardLayer);
+    const keep = svgNode('g', { class: 'canvas-held', visibility: 'hidden', 'pointer-events': 'none', 'aria-hidden': 'true' });
+    for (const node of this.held.values()) if (!cardLayer.contains(node)) keep.append(node);
+    this.svg.replaceChildren(defs, edgeLayer, centerLayer, cardLayer, keep);
   }
   down(event) {
     if (event.button !== 0 || this.points.size >= 2) return;
     event.preventDefault();
     const point = this.point(event); this.points.set(event.pointerId, point);
+    if (event.target !== this.svg && event.target instanceof SVGElement) this.held.set(event.pointerId, event.target);
     this.svg.setPointerCapture(event.pointerId);
     clearTimeout(this.longTimer);
     if (this.points.size === 2) {
@@ -235,7 +241,7 @@ export class CanvasView {
   up(event) {
     if (!this.points.has(event.pointerId)) return;
     const point = this.point(event), mode = this.mode, start = this.start, original = this.original, wire = this.wire;
-    this.points.delete(event.pointerId); clearTimeout(this.longTimer);
+    this.points.delete(event.pointerId); this.held.delete(event.pointerId); clearTimeout(this.longTimer);
     if (this.svg.hasPointerCapture(event.pointerId)) this.svg.releasePointerCapture(event.pointerId);
     if (this.points.size) {
       const remaining = [...this.points.values()][0];
@@ -258,6 +264,6 @@ export class CanvasView {
   cancel() {
     clearTimeout(this.longTimer); cancelAnimationFrame(this.edgeFrame); this.edgeFrame = null;
     if (this.mode === 'drag' && this.original) this.callbacks.onMoveCancel(this.original);
-    this.mode = 'idle'; this.wire = null; this.original = null; this.points.clear(); this.requestDraw();
+    this.mode = 'idle'; this.wire = null; this.original = null; this.points.clear(); this.held.clear(); this.requestDraw();
   }
 }
