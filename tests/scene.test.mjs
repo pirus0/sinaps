@@ -95,3 +95,16 @@ test('Sade büyük tuvalde en az .38: Tam odağı korunur, merkez isteği origin
   assert.deepEqual(fitCamera(scene,viewport,{x:720,y:-200}),{x:720,y:-200,z:.38});
   assert.deepEqual(fitCamera(scene,viewport),{x:0,y:0,z:.38});assert.ok(116*.38>=44);assert.equal(zoomAt({x:0,y:0,z:.38},{x:195,y:422},{x:195,y:422},.01,viewport,.38).z,.38);
 });
+
+test('mıknatıslı hizalama: yakın çizgiye çeker, uzakta serbest bırakır', async () => {
+  const { snapPosition } = await import('../scene.js');
+  const store = { kartlar: [{ id: 'a', x: 0, y: 0, baslik: 'A', aciklama: '' }, { id: 'b', x: 300, y: 300, baslik: 'B', aciklama: '' }], ipler: [] };
+  const near = snapPosition(store, 'b', 7, 300, 164, 12);
+  assert.equal(near.x, 0); assert.equal(near.y, 300); assert.equal(near.guides.length, 1);
+  const both = snapPosition(store, 'b', 5, -9, 164, 12);
+  assert.deepEqual([both.x, both.y], [0, 0]); assert.equal(both.guides.length, 2);
+  const free = snapPosition(store, 'b', 40, 300, 164, 12);
+  assert.deepEqual([free.x, free.y, free.guides.length], [40, 300, 0]);
+  const edge = snapPosition(store, 'b', 164 + 5, 300, 164, 12);
+  assert.equal(edge.x, 164);
+});

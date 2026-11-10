@@ -1,5 +1,5 @@
 import { cardTitle, linked, cardHeight, isImageCard } from './graph.js';
-import { cardWidth, curveBetween, worldToScreen, screenToWorld, clampCamera, zoomAt, shorten, previewLines } from './scene.js';
+import { cardWidth, snapPosition, curveBetween, worldToScreen, screenToWorld, clampCamera, zoomAt, shorten, previewLines } from './scene.js';
 import { textMeasure } from './png.js';
 import { photoURL } from './photos.js';
 // Screen width (px) a card needs before each part is drawn; parts vanish in this order when zooming out.
@@ -153,6 +153,12 @@ export class CanvasView {
       }
       cardLayer.append(group);
     }
+    if (this.mode === 'drag' && this.guides?.length) {
+      for (const guide of this.guides) {
+        const a = worldToScreen({ x: guide.x1, y: guide.y1 }, camera, viewport), b = worldToScreen({ x: guide.x2, y: guide.y2 }, camera, viewport);
+        edgeLayer.append(svgNode('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'snap-guide', stroke: 'var(--iris)', 'stroke-width': 1, 'stroke-dasharray': '3 3', 'pointer-events': 'none' }));
+      }
+    }
     if (this.wire && this.start) {
       const source = store.kartlar.find(card => card.id === this.start.id);
       if (source) {
@@ -224,8 +230,10 @@ export class CanvasView {
     } else if (this.mode === 'drag') this.previewDrag(point);
   }
   previewDrag(point) {
-    const world = screenToWorld(point, this.callbacks.state().camera, this.viewport());
-    this.callbacks.onMovePreview(this.original.id, world.x - this.dragOffset.x, world.y - this.dragOffset.y); this.requestDraw();
+    const camera = this.callbacks.state().camera, viewport = this.viewport(), world = screenToWorld(point, camera, viewport);
+    // 12 screen px of pull, whatever the zoom.
+    const snap = snapPosition(this.callbacks.store(), this.original.id, world.x - this.dragOffset.x, world.y - this.dragOffset.y, cardWidth(viewport.width), 12 / camera.z);
+    this.guides = snap.guides; this.callbacks.onMovePreview(this.original.id, snap.x, snap.y); this.requestDraw();
   }
   autoEdge() {
     if (this.mode !== 'drag') return;
@@ -247,7 +255,7 @@ export class CanvasView {
       const remaining = [...this.points.values()][0];
       this.mode = 'pan'; this.start = { point: remaining, camera: { ...this.callbacks.state().camera }, id: null }; return;
     }
-    this.mode = 'idle'; this.wire = null; cancelAnimationFrame(this.edgeFrame); this.edgeFrame = null;
+    this.mode = 'idle'; this.wire = null; this.guides = null; cancelAnimationFrame(this.edgeFrame); this.edgeFrame = null;
     if (mode === 'photo-pending') this.callbacks.onPhoto?.(start.id);
     else if (mode === 'wire-pending') this.callbacks.onWireTap?.(start.id);
     else if (mode === 'wire') {
@@ -264,6 +272,6 @@ export class CanvasView {
   cancel() {
     clearTimeout(this.longTimer); cancelAnimationFrame(this.edgeFrame); this.edgeFrame = null;
     if (this.mode === 'drag' && this.original) this.callbacks.onMoveCancel(this.original);
-    this.mode = 'idle'; this.wire = null; this.original = null; this.points.clear(); this.held.clear(); this.requestDraw();
+    this.mode = 'idle'; this.wire = null; this.guides = null; this.original = null; this.points.clear(); this.held.clear(); this.requestDraw();
   }
 }

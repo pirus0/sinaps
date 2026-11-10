@@ -117,3 +117,32 @@ export function exportPlan(scene, { scale = 2, maxSide = 4096, maxPixels = 8_000
     pixelWidth: Math.max(1, Math.floor(width * factor)), pixelHeight: Math.max(1, Math.floor(height * factor)),
     offsetX: (width - bounds.width) / 2 - bounds.minX, offsetY: 40 - bounds.minY };
 }
+
+// Magnetic alignment while dragging: the moved card's left/centre/right and top/middle/bottom
+// lines are pulled onto another card's matching lines when within `limit` world units.
+// Outside that range the card follows the finger freely. Returns the snapped centre and guides.
+export function snapPosition(store, id, x, y, width, limit) {
+  const moved = store.kartlar.find(card => card.id === id); if (!moved) return { x, y, guides: [] };
+  const lines = (cx, cy, h) => ({ xs: [cx - width / 2, cx, cx + width / 2], ys: [cy - h / 2, cy, cy + h / 2] });
+  const h = cardHeight(moved, width), mine = lines(x, y, h);
+  let bestX = null, bestY = null;
+  for (const card of store.kartlar) {
+    if (card.id === id) continue;
+    const other = lines(card.x, card.y, cardHeight(card, width));
+    for (const own of mine.xs) for (const at of other.xs) {
+      const d = at - own; if (Math.abs(d) <= limit && (!bestX || Math.abs(d) < Math.abs(bestX.d))) bestX = { d, at, card };
+    }
+    for (const own of mine.ys) for (const at of other.ys) {
+      const d = at - own; if (Math.abs(d) <= limit && (!bestY || Math.abs(d) < Math.abs(bestY.d))) bestY = { d, at, card };
+    }
+  }
+  const nx = x + (bestX?.d ?? 0), ny = y + (bestY?.d ?? 0), guides = [];
+  if (bestX) {
+    const oh = cardHeight(bestX.card, width) / 2;
+    guides.push({ x1: bestX.at, x2: bestX.at, y1: Math.min(ny - h / 2, bestX.card.y - oh), y2: Math.max(ny + h / 2, bestX.card.y + oh) });
+  }
+  if (bestY) {
+    guides.push({ y1: bestY.at, y2: bestY.at, x1: Math.min(nx, bestY.card.x) - width / 2, x2: Math.max(nx, bestY.card.x) + width / 2 });
+  }
+  return { x: nx, y: ny, guides };
+}
