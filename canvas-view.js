@@ -2,6 +2,7 @@ import { cardTitle, linked, cardHeight, isImageCard } from './graph.js';
 import { cardWidth, snapPosition, curveBetween, worldToScreen, screenToWorld, clampCamera, zoomAt, shorten, previewLines } from './scene.js';
 import { textMeasure } from './png.js';
 import { photoURL } from './photos.js';
+import { overTrash, armTrash, swallow } from './trash-drop.js';
 // Screen width (px) a card needs before each part is drawn; parts vanish in this order when zooming out.
 // Print is unaffected: pdf.js draws every part at full size.
 const LOD = Object.freeze({ description: 120, controls: 90, photo: 64, title: 40, edges: 16, outline: 16, dot: 8 });
@@ -186,7 +187,7 @@ export class CanvasView {
     this.svg.setPointerCapture(event.pointerId);
     clearTimeout(this.longTimer);
     if (this.points.size === 2) {
-      if (this.mode === 'drag') this.callbacks.onMoveCancel(this.original);
+      if (this.mode === 'drag') { this.callbacks.onMoveCancel(this.original); armTrash(false, false); this.trashHover = false; }
       const [a, b] = [...this.points.values()];
       this.wire = null; this.mode = 'pinch'; this.pinch = { camera: { ...this.callbacks.state().camera }, point: middle(a, b), distance: Math.max(1, distance(a, b)) };
       this.requestDraw(); return;
@@ -219,7 +220,7 @@ export class CanvasView {
       if (card && !state.sade && !state.target && !state.locked) {
         this.original = { ...card }; this.mode = 'drag';
         const world = screenToWorld(this.start.point, this.start.camera, this.viewport());
-        this.dragOffset = { x: world.x - card.x, y: world.y - card.y }; this.callbacks.onDragStart?.(); this.autoEdge();
+        this.dragOffset = { x: world.x - card.x, y: world.y - card.y }; this.trashHover = false; armTrash(true, false); this.callbacks.onDragStart?.(); this.autoEdge();
       } else this.mode = 'pan';
     }
     if (this.mode === 'pan') {
@@ -227,7 +228,11 @@ export class CanvasView {
         y: this.start.camera.y - (point.y - this.start.point.y) / this.start.camera.z });
     } else if (this.mode === 'one-zoom') {
       this.setCamera(zoomAt(this.start.camera, this.start.point, this.start.point, Math.exp(-(point.y - this.start.point.y) / 160), this.viewport(), this.callbacks.state().sade ? .38 : .001));
-    } else if (this.mode === 'drag') this.previewDrag(point);
+    } else if (this.mode === 'drag') {
+      const hover = overTrash(event.clientX, event.clientY);
+      if (hover !== this.trashHover) { this.trashHover = hover; armTrash(true, hover); }
+      this.previewDrag(point);
+    }
   }
   previewDrag(point) {
     const camera = this.callbacks.state().camera, viewport = this.viewport(), world = screenToWorld(point, camera, viewport);
@@ -242,7 +247,7 @@ export class CanvasView {
       const viewport = this.viewport(), camera = this.callbacks.state().camera;
       const velocity = (value, max, low = 36, high = max - 36) => value < low ? -(low - value) / 5 : value > high ? (value - high) / 5 : 0;
       const short = viewport.height < 500, dx = velocity(point.x, viewport.width), dy = velocity(point.y, viewport.height, short ? 56 : 112, viewport.height - (short ? 64 : 118));
-      if (dx || dy) { this.setCamera({ ...camera, x: camera.x + dx / camera.z, y: camera.y + dy / camera.z }); this.previewDrag(point); }
+      if ((dx || dy) && !this.trashHover) { this.setCamera({ ...camera, x: camera.x + dx / camera.z, y: camera.y + dy / camera.z }); this.previewDrag(point); }
     }
     this.edgeFrame = requestAnimationFrame(() => this.autoEdge());
   }
@@ -263,7 +268,12 @@ export class CanvasView {
       if (wire?.target || (point.y >= 112 && point.y <= viewport.height - 118 && point.x >= 0 && point.x <= viewport.width)) {
         this.callbacks.onWireDrop?.(start.id, wire?.target ?? null, screenToWorld(point, this.callbacks.state().camera, viewport));
       }
-    } else if (mode === 'drag') { this.callbacks.onMoveDone(original); this.original = null; }
+    } else if (mode === 'drag') {
+      armTrash(false, false);
+      if (this.trashHover && this.callbacks.onTrashDrop) { swallow(this.svg, original.id); this.callbacks.onTrashDrop(original); }
+      else this.callbacks.onMoveDone(original);
+      this.original = null; this.trashHover = false;
+    }
     else if (mode === 'pending' && start.id) this.callbacks.onCard(start.id);
     else if (mode === 'pending') this.lastTap = { point, time: Date.now() };
     if (['pan', 'pinch', 'one-zoom', 'drag'].includes(mode)) this.callbacks.onCamera(this.callbacks.state().camera, true);
@@ -271,7 +281,7 @@ export class CanvasView {
   }
   cancel() {
     clearTimeout(this.longTimer); cancelAnimationFrame(this.edgeFrame); this.edgeFrame = null;
-    if (this.mode === 'drag' && this.original) this.callbacks.onMoveCancel(this.original);
-    this.mode = 'idle'; this.wire = null; this.guides = null; this.original = null; this.points.clear(); this.held.clear(); this.requestDraw();
+    if (this.mode === 'drag' && this.original) { this.callbacks.onMoveCancel(this.original); armTrash(false, false); }
+    this.trashHover = false; this.mode = 'idle'; this.wire = null; this.guides = null; this.original = null; this.points.clear(); this.held.clear(); this.requestDraw();
   }
 }

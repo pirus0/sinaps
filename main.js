@@ -113,7 +113,7 @@ function notice(message) {
   placeNotice(); noticeTimer = setTimeout(() => { $('#notice').hidden = true; }, 4000);
 }
 function clearUndo() { undoAction = null; clearTimeout(undoTimer); $('#notice').hidden = true; }
-function setUndo(action, message) {
+function setUndo(action, message, duration = 6000) {
   clearUndo(); clearTimeout(noticeTimer); undoAction = action; $('#notice').replaceChildren();
   if (message) $('#notice').append(el('span', 'undo-message', message));
   $('#notice').append(button('Geri al', () => {
@@ -127,7 +127,7 @@ function setUndo(action, message) {
       render();
     }
   }, 'undo-button'));
-  $('#notice').hidden = false; placeNotice(); undoTimer = setTimeout(clearUndo, 6000);
+  $('#notice').hidden = false; placeNotice(); undoTimer = setTimeout(clearUndo, duration);
 }
 function persistentStore(graph) {
   let result = graph;
@@ -380,8 +380,14 @@ const canvas = new CanvasView($('#canvas'), {
     const moved = store.kartlar.find(card => card.id === original.id); if (!moved) return;
     if (persist(positionCard(store, original.id, moved.x, moved.y, width()))) {
       setUndo(() => ({ ...store, kartlar: store.kartlar.map(card => card.id === original.id
-        ? { ...card, x: original.x, y: original.y } : card) }), 'Kart taşındı');
+        ? { ...card, x: original.x, y: original.y } : card) }), 'Kart taşındı', 3000);
     }
+  },
+  onTrashDrop(original) {
+    const record = deleteCard(store, original.id); if (!record.card || !persist(record.store)) return;
+    drafts.delete(original.id); view.highlight = null;
+    setUndo(() => restoreDeleted(store, { ...record, card: { ...record.card, x: original.x, y: original.y } }), 'Kart silindi');
+    retirePhotos([record.card]); render();
   },
   onMoveCancel(original) {
     if (original) store = { ...store, kartlar: store.kartlar.map(card => card.id === original.id ? { ...card, x: original.x, y: original.y } : card) };
