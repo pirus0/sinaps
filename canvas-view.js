@@ -176,13 +176,11 @@ export class CanvasView {
     }
     const centerLayer = svgNode('g', { class: 'canvas-center', transform: `translate(${origin.x} ${origin.y})`, 'pointer-events': 'none', 'aria-hidden': 'true' });
     centerLayer.append(svgNode('circle', { r: 15, fill: 'var(--iris-soft)', stroke: 'none' }), svgNode('circle', { r: 9, fill: 'var(--iris)', stroke: 'none' }));
-    const label = shorten(state.title || '', Math.min(260, viewport.width - 32), measureBody), labelWidth = measureBody(label) + 12;
-    centerLayer.append(svgNode('rect', { x: -labelWidth / 2, y: 22, width: labelWidth, height: 22, rx: 4, fill: 'var(--paper)', stroke: 'none' }), svgNode('text', { x: 0, y: 37, 'text-anchor': 'middle', fill: 'var(--iris)', stroke: 'none', 'font-size': 13, 'font-weight': 600 }, label));
     const keep = svgNode('g', { class: 'canvas-held', visibility: 'hidden', 'pointer-events': 'none', 'aria-hidden': 'true' });
     for (const node of this.held.values()) if (!cardLayer.contains(node)) keep.append(node);
     this.svg.replaceChildren(defs, edgeLayer, centerLayer, cardLayer, keep);
   }
-  // An empty board shows the logo faintly behind the center dot, its dot exactly under it
+  // An empty board shows the logo faintly over the center dot, its dot exactly under it
   // (logo dot r 2.6 of 24 -> scaled so it matches the center dot's r 9). It is one persistent
   // element moved by transform; when the first card appears it fades out over 2 s (opacity only).
   ghostLogo(empty, board, origin) {
