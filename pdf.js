@@ -1,7 +1,8 @@
 import { MM, planPDF } from './pdf-layout.js';
-import { previewLines, shorten } from './scene.js';
+import { shorten } from './scene.js';
+import { TEXT } from './card-text.js';
 import { getPhoto } from './photos.js';
-import { isImageCard } from './graph.js';
+import { isImageCard, cardLines } from './graph.js';
 let libraries;
 const script = path => new Promise((resolve,reject)=>{const node=document.createElement('script');node.src=new URL(path,import.meta.url);node.onload=resolve;node.onerror=()=>{node.remove();reject(new Error('PDF aracı açılamadı'));};document.head.append(node);});
 async function load() {
@@ -41,8 +42,10 @@ export async function preparePDF(store,width,title,plan=planPDF(store,width,titl
     clip(page,l+.75*SCALE,t-photoH,w-1.5*SCALE,photoH-.75*SCALE);
     page.drawImage(image,{x:l+(w-iw)/2,y:t-photoH+(photoH-ih)/2,width:iw,height:ih});unclip(page);unclip(page);
    }
-   if(!imageOnly)text(page,card.label,l+14*SCALE,t-photoH-28*SCALE,TITLE,colors.ink,bold,w-28*SCALE);
-   if(card.baslik){const lines=previewLines(safeText(card.aciklama),(w-28*SCALE)/SCALE,v=>font.widthOfTextAtSize(v,BODY)/SCALE);for(const[n,value]of lines.entries())text(page,value,l+14*SCALE,t-photoH-(49+n*19.5)*SCALE,BODY,colors.soft);}
+   // The same wrapped lines as the screen card, scaled; nothing is cut short.
+   if(!imageOnly){const lines=cardLines(card,card.w),left=l+TEXT.inset*SCALE;
+    for(const[n,value]of lines.title.entries())text(page,value,left,t-photoH-(TEXT.titleTop+n*TEXT.titleLine)*SCALE,TITLE,colors.ink,bold);
+    for(const[n,value]of lines.body.entries())if(value)text(page,value,left,t-photoH-(lines.bodyTop+n*TEXT.bodyLine)*SCALE,BODY,colors.soft);}
   }
   page.drawCircle({x:x(0),y:y(0),size:9*SCALE,color:colors.iris});const centerLabel=shorten(title,260,v=>font.widthOfTextAtSize(v,BODY)/SCALE);text(page,centerLabel,x(0)-font.widthOfTextAtSize(centerLabel,BODY)/2,y(0)-36*SCALE,BODY,colors.iris);
   unclip(page);

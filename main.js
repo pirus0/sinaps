@@ -1,7 +1,8 @@
-import { STORAGE_KEY as GRAPH_KEY, LEGACY_KEY, emptyGraph, addCard, editCard, positionCard, connectCards, disconnect, linked, deleteCard, restoreDeleted, hasCardText } from './graph.js';
+import { STORAGE_KEY as GRAPH_KEY, LEGACY_KEY, emptyGraph, addCard, editCard, positionCard, connectCards, disconnect, linked, deleteCard, restoreDeleted, hasCardText, spaceCards } from './graph.js';
 import { cardWidth, makeScene, fitCamera, clampCamera } from './scene.js';
 import { CanvasView } from './canvas-view.js';
 import { textMeasure } from './png.js';
+import { setTextMeasure } from './card-text.js';
 import { releasePhotos, photoURL } from './photos.js';
 import { loadSample } from './sample.js';
 import { APP_NAME } from './brand.js';
@@ -181,8 +182,13 @@ function focusCard(id, pair = false) {
     : { x: card.x, y: card.y, z: 1 };
   view.tamCamera = { ...view.camera }; saveView();
 }
+// Cards grow with their text; keep them from covering each other (graph.js spaceCards).
+function makeRoom() {
+  if (!activeBoard || locked) return; const next = spaceCards(store, width());
+  if (next !== store) persist(next);
+}
 function showCanvas({ focus = null, pair = false, replace = false } = {}) {
-  cleanWriting(); current = null; entryCard = null; view.target = null;
+  cleanWriting(); current = null; entryCard = null; view.target = null; makeRoom();
   if (sheet.open) sheet.close();
   if (focus) { view.sade = false; focusCard(focus, pair); }
   pushRoute({ card: null, panel: null, target: null }, replace); render(); saveView();
@@ -232,7 +238,7 @@ function activateWorkspace(id, { fresh = false, replace = false, record = true }
   if (!library.tuvaller.some(board => board.id === id && !board.silinme)) return;
   trashOpen = false;
   if (current) cleanWriting(); if (activeBoard) { persist(); saveView(); }
-  canvas.cancel(); clearUndo(); activeBoard = id; current = null; entryCard = null; store = boardGraph(library, id);
+  canvas.cancel(); clearUndo(); activeBoard = id; current = null; entryCard = null; store = boardGraph(library, id); makeRoom();
   const saved = viewLibrary.tuvaller[id];
   const valid = camera => camera && [camera.x, camera.y, camera.z].every(Number.isFinite) && camera.z > 0 && camera.z <= 4;
   view.camera = valid(saved?.camera) ? saved.camera : { x: 0, y: 0, z: 1 };
@@ -468,6 +474,13 @@ document.title = APP_NAME; $('meta[name="apple-mobile-web-app-title"]').content 
 route = { ...route, board: activeBoard }; history.replaceState(route, '', location.pathname); applyTheme(themePreference(), false); render();
 warmActivePhotos();
 document.fonts.ready.then(() => { sceneCache = null; if (view.sade) view.camera = fitCamera(scene(), viewport(), view.camera); invalidatePNG(); canvas.requestDraw(); });
+// Card lines are wrapped with the real Geist metrics; re-measure once the fonts have loaded.
+function measureCards() {
+  try { setTextMeasure(textMeasure('600 15.5px Geist'), textMeasure('400 13.5px Geist')); } catch { return; }
+  sceneCache = null; invalidatePNG(); makeRoom(); if (activeBoard && !current) canvas.requestDraw();
+}
+measureCards();
+Promise.all([document.fonts?.load('600 15.5px Geist'), document.fonts?.load('400 13.5px Geist')]).then(measureCards).catch(() => {});
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => notice('Çevrimdışı hazırlık tamamlanamadı.'));
 
 if (sampleRequest && !locked) {

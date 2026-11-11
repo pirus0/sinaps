@@ -1,5 +1,6 @@
-import { cardTitle, linked, cardHeight, isImageCard } from './graph.js';
-import { cardWidth, snapPosition, curveBetween, worldToScreen, screenToWorld, clampCamera, zoomAt, shorten, previewLines } from './scene.js';
+import { cardTitle, linked, cardHeight, cardLines, isImageCard } from './graph.js';
+import { TEXT } from './card-text.js';
+import { cardWidth, snapPosition, curveBetween, worldToScreen, screenToWorld, clampCamera, zoomAt, shorten } from './scene.js';
 import { textMeasure } from './png.js';
 import { photoURL } from './photos.js';
 import { overTrash, armTrash, swallow } from './trash-drop.js';
@@ -62,7 +63,7 @@ export class CanvasView {
     const store = this.callbacks.store(), state = this.callbacks.state(), viewport = this.viewport();
     if (!viewport.width || !viewport.height) return;
     const { camera, sade, target, highlight } = state, width = cardWidth(viewport.width);
-    const measureTitle = textMeasure('600 15.5px Geist'), measureBody = textMeasure('400 13.5px Geist'), measurePill = textMeasure();
+    const measurePill = textMeasure();
     this.svg.setAttribute('viewBox', `0 0 ${viewport.width} ${viewport.height}`);
     this.ghostLogo(store.kartlar.length === 0, state.board, worldToScreen({ x: 0, y: 0 }, camera, viewport));
     const step = Math.max(4, 22 * camera.z);
@@ -130,13 +131,17 @@ export class CanvasView {
         surface.append(svgNode('image', { href: imageURL, x: sade ? -w / 2 + 5 : -w / 2 + .75, y: sade ? -15 : -h / 2 + .75,
           width: sade ? 30 : w - 1.5, height: sade ? 30 : photoHeight, preserveAspectRatio: 'xMidYMid slice', 'clip-path': `url(#${clipId})` }));
       }
-      const titleText = shows('title') && !imageOnly ? shorten(cardTitle(card), w - (sade ? card.fotoId ? 55 : 24 : 28), sade ? measurePill : measureTitle) : '';
-      if (!imageOnly && shows('title')) surface.append(svgNode('text', { x: sade ? card.fotoId ? -w / 2 + 43 : 0 : -w / 2 + 14, y: sade ? 5 : -h / 2 + photoHeight + 28,
-        'text-anchor': sade && !card.fotoId ? 'middle' : 'start', class: `card-title${!card.baslik ? ' fallback' : ''}` }, titleText));
-      if (!sade && card.baslik && shows('description')) {
-        for (const [index, line] of previewLines(card.aciklama, w - 28, measureBody).entries()) {
-          surface.append(svgNode('text', { x: -w / 2 + 14, y: -h / 2 + photoHeight + 49 + index * 19.5, class: 'card-description' }, line));
-        }
+      if (sade) {
+        const titleText = shows('title') && !imageOnly ? shorten(cardTitle(card), w - (card.fotoId ? 55 : 24), measurePill) : '';
+        if (!imageOnly && shows('title')) surface.append(svgNode('text', { x: card.fotoId ? -w / 2 + 43 : 0, y: 5,
+          'text-anchor': card.fotoId ? 'start' : 'middle', class: `card-title${!card.baslik ? ' fallback' : ''}` }, titleText));
+      } else if (!imageOnly) {
+        // Whole title and description, wrapped; the card is as tall as its text (card-text.js).
+        const lines = cardLines(card, w), top = -h / 2 + photoHeight;
+        if (shows('title')) for (const [index, line] of lines.title.entries()) surface.append(svgNode('text', { x: -w / 2 + TEXT.inset, y: top + TEXT.titleTop + index * TEXT.titleLine,
+          class: `card-title${!card.baslik ? ' fallback' : ''}` }, line));
+        if (shows('description')) for (const [index, line] of lines.body.entries()) if (line) surface.append(svgNode('text', { x: -w / 2 + TEXT.inset,
+          y: top + lines.bodyTop + index * TEXT.bodyLine, class: 'card-description' }, line));
       }
       group.append(surface);
       if (!sade && !target && !state.locked && shows('controls')) {

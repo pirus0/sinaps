@@ -1,4 +1,5 @@
 import { normalizeStore as normalizeV1, STORAGE_KEY as V1_KEY } from './model.js';
+import { cardLayout } from './card-text.js';
 
 export const STORAGE_KEY = 'dallanan-not-data-v2';
 export const LEGACY_KEY = V1_KEY;
@@ -14,7 +15,13 @@ export const hasCardText = card => !!(card.baslik.trim() || card.aciklama.trim()
 export const isImageCard = card => !!card.fotoId && !hasCardText(card);
 export const linked = (store, a, b) => store.ipler.some(ip => pairKey(ip.aId, ip.bId) === pairKey(a, b));
 export const connections = (store, id) => store.ipler.filter(ip => ip.aId === id || ip.bId === id);
-export const cardHeight = (card, width = 158) => isImageCard(card) ? width * .75 : 88 + (card.fotoId ? width * .6 : 0);
+/** Every line a card shows. A card without a title shows its first description line as the title and the rest below. */
+export function cardLines(card, width = 158) {
+  if (card.baslik?.trim()) return cardLayout(card.baslik.trim(), card.aciklama || '', width);
+  const lines = (card.aciklama || '').split('\n'), first = lines.findIndex(line => line.trim());
+  return first < 0 ? cardLayout('…', '', width) : cardLayout(lines[first].trim(), lines.slice(first + 1).join('\n'), width);
+}
+export const cardHeight = (card, width = 158) => isImageCard(card) ? width * .75 : cardLines(card, width).height + (card.fotoId ? width * .6 : 0);
 
 export function normalizeGraph(input, repair = true) {
   if (!input || input.surum !== 2 || !Array.isArray(input.kartlar) || !Array.isArray(input.ipler)) throw new Error('Bu dosya yedek değil.');
@@ -106,6 +113,27 @@ export function connectCards(store, aId, bId, id = crypto.randomUUID()) {
   return { ...store, ipler: [...store.ipler, { id, aId, bId, olusturma: now() }] };
 }
 export const disconnect = (store, id) => ({ ...store, ipler: store.ipler.filter(ip => ip.id !== id) });
+/** Pushes cards down, column by column, until no two cards overlap (gap px apart); order is kept.
+ *  Needed because a card is as tall as its text: a longer text can reach the card below. */
+export function spaceCards(store, width = 158, gap = 28) {
+  // Top to bottom by centre, so a card never jumps over the one that was above it.
+  const order = [...store.kartlar].sort((a, b) => a.y - b.y || a.x - b.x);
+  const placed = [], moved = new Map();
+  for (const card of order) {
+    const h = cardHeight(card, width); let y = card.y;
+    for (let again = true; again;) {
+      again = false;
+      for (const other of placed) {
+        if (Math.abs(other.x - card.x) >= width + 8) continue;
+        const bottom = other.y + other.h / 2;
+        if (y - h / 2 < bottom + gap - 1e-6) { y = bottom + gap + h / 2; again = true; }
+      }
+    }
+    if (y !== card.y) moved.set(card.id, y);
+    placed.push({ x: card.x, y, h });
+  }
+  return moved.size ? { ...store, kartlar: store.kartlar.map(card => moved.has(card.id) ? { ...card, y: moved.get(card.id) } : card) } : store;
+}
 export function deleteCard(store, id) {
   const card = store.kartlar.find(item => item.id === id);
   const edges = connections(store, id);
