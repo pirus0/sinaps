@@ -269,7 +269,7 @@ function wireDrop(sourceId, targetId, point) {
 }
 
 function paintToolbar() {
-  const toolbar = $('#toolbar'); toolbar.replaceChildren(); toolbar.hidden = !!view.target || (!current && !store.kartlar.length);
+  const toolbar = $('#toolbar'); toolbar.replaceChildren(); toolbar.hidden = !!view.target;
   if (!activeBoard) {
     const create = button('Yeni', createWorkspace, 'icon-button', 'plus'); create.classList.add('button', 'accent', 'new-action');
     toolbar.hidden = !library.tuvaller.some(board => !board.silinme); toolbar.append(el('span', 'spacer'), create);
@@ -338,11 +338,6 @@ function render() {
       const search = button('Ara', openSearch, 'icon-button'); search.replaceChildren(icon('search')); search.classList.add('header-search');
       header.append(back, name, search);
     }
-    if (!store.kartlar.length) {
-      content.className = 'empty-board'; const empty = el('div', 'empty'), mark = icon('brand'); mark.classList.add('empty-brand');
-      const create = button('Yeni', () => createCard(), 'button accent', 'plus'); create.disabled = locked;
-      empty.append(mark, el('p', 'empty-label', 'Boş'), create); content.append(empty);
-    }
     $('#canvas').classList.toggle('sade', view.sade); canvas.draw();
   }
   paintToolbar(); updateViewport();
@@ -369,7 +364,7 @@ function updateViewport() {
   document.documentElement.style.setProperty('--keyboard', `${bottom}px`); document.body.classList.toggle('keyboard', bottom > 100);
 }
 const canvas = new CanvasView($('#canvas'), {
-  store: () => store, state: () => ({ ...view, locked, title: activeName() }), scene,
+  store: () => store, state: () => ({ ...view, locked, title: activeName(), board: activeBoard }), scene,
   onCard: selectCard, onPhoto: requestPhoto,
   onWireTap: beginLink,
   onWireDrop: wireDrop,

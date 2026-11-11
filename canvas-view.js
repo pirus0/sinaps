@@ -3,8 +3,10 @@ import { cardWidth, snapPosition, curveBetween, worldToScreen, screenToWorld, cl
 import { textMeasure } from './png.js';
 import { photoURL } from './photos.js';
 import { overTrash, armTrash, swallow } from './trash-drop.js';
+import { brandSVG } from './brand.js';
 // Screen width (px) a card needs before each part is drawn; parts vanish in this order when zooming out.
 // Print is unaffected: pdf.js draws every part at full size.
+const GHOST = 24 * 9 / 2.6; // px; logo dot radius equals the center dot's 9 px
 const LOD = Object.freeze({ description: 120, controls: 90, photo: 64, title: 40, edges: 16, outline: 16, dot: 8 });
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -62,6 +64,7 @@ export class CanvasView {
     const { camera, sade, target, highlight } = state, width = cardWidth(viewport.width);
     const measureTitle = textMeasure('600 15.5px Geist'), measureBody = textMeasure('400 13.5px Geist'), measurePill = textMeasure();
     this.svg.setAttribute('viewBox', `0 0 ${viewport.width} ${viewport.height}`);
+    this.ghostLogo(store.kartlar.length === 0, state.board, worldToScreen({ x: 0, y: 0 }, camera, viewport));
     const step = Math.max(4, 22 * camera.z);
     const origin = worldToScreen({ x: 0, y: 0 }, camera, viewport);
     this.svg.parentElement.style.backgroundSize = `${step}px ${step}px`;
@@ -178,6 +181,25 @@ export class CanvasView {
     const keep = svgNode('g', { class: 'canvas-held', visibility: 'hidden', 'pointer-events': 'none', 'aria-hidden': 'true' });
     for (const node of this.held.values()) if (!cardLayer.contains(node)) keep.append(node);
     this.svg.replaceChildren(defs, edgeLayer, centerLayer, cardLayer, keep);
+  }
+  // An empty board shows the logo faintly behind the center dot, its dot exactly under it
+  // (logo dot r 2.6 of 24 -> scaled so it matches the center dot's r 9). It is one persistent
+  // element moved by transform; when the first card appears it fades out over 2 s (opacity only).
+  ghostLogo(empty, board, origin) {
+    if (!this.ghost) {
+      this.ghost = document.createElement('div'); this.ghost.className = 'ghost-logo'; this.ghost.setAttribute('aria-hidden', 'true');
+      this.ghost.innerHTML = brandSVG({ size: GHOST, ink: 'var(--ink)', accent: 'var(--iris)' });
+      Object.assign(this.ghost.firstElementChild.style, { width: GHOST + 'px', height: GHOST + 'px' });
+      this.svg.before(this.ghost);
+    }
+    const node = this.ghost;
+    node.style.transform = `translate(${origin.x - GHOST / 2}px,${origin.y - GHOST / 2}px)`;
+    if (board !== this.ghostBoard) { this.ghostBoard = board; this.ghostFade?.cancel(); this.ghostFade = null; node.hidden = !empty; this.ghostShown = empty; return; }
+    if (empty) { if (!this.ghostShown) { this.ghostFade?.cancel(); this.ghostFade = null; node.hidden = false; this.ghostShown = true; } return; }
+    if (!this.ghostShown) return;
+    this.ghostShown = false;
+    const fade = this.ghostFade = node.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 2000, easing: 'ease-in', fill: 'forwards' });
+    fade.finished.then(() => { if (this.ghostFade === fade) { node.hidden = true; fade.cancel(); this.ghostFade = null; } }).catch(() => {});
   }
   down(event) {
     if (event.button !== 0 || this.points.size >= 2) return;
