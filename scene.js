@@ -34,8 +34,11 @@ export function previewLines(text, width, measure, limit = 2) {
   if (line && lines.length < limit) lines.push(line);
   return lines;
 }
+// Links always leave and enter a card through its side ports (the circles on the left and right
+// edges), never its top or bottom. Cards side by side join facing sides; cards stacked in one column
+// join on the same side with a curve that bows outwards, away from both cards.
 export function curveBetween(a, b, orientationWidth = 158) {
-  const dx = b.x - a.x, dy = b.y - a.y;
+  const dx = b.x - a.x;
   let start, end, c1, c2;
   if (Math.abs(dx) >= orientationWidth * .9) {
     const sign = dx >= 0 ? 1 : -1;
@@ -43,10 +46,10 @@ export function curveBetween(a, b, orientationWidth = 158) {
     const mid = (start.x + end.x) / 2;
     c1 = { x: mid, y: start.y }; c2 = { x: mid, y: end.y };
   } else {
-    const sign = dy >= 0 ? 1 : -1;
-    start = { x: a.x, y: a.y + a.h / 2 * sign }; end = { x: b.x, y: b.y - b.h / 2 * sign };
-    const mid = (start.y + end.y) / 2;
-    c1 = { x: start.x, y: mid }; c2 = { x: end.x, y: mid };
+    const sign = dx >= 0 ? 1 : -1;
+    start = { x: a.x + a.w / 2 * sign, y: a.y }; end = { x: b.x + b.w / 2 * sign, y: b.y };
+    const bow = Math.min(90, 28 + Math.abs(b.y - a.y) * .2), out = sign > 0 ? Math.max(start.x, end.x) + bow : Math.min(start.x, end.x) - bow;
+    c1 = { x: out, y: start.y }; c2 = { x: out, y: end.y };
   }
   return { start, end, c1, c2, d: `M${start.x} ${start.y}C${c1.x} ${c1.y} ${c2.x} ${c2.y} ${end.x} ${end.y}` };
 }
@@ -121,28 +124,37 @@ export function exportPlan(scene, { scale = 2, maxSide = 4096, maxPixels = 8_000
 // Magnetic alignment while dragging: the moved card's left/centre/right and top/middle/bottom
 // lines are pulled onto another card's matching lines when within `limit` world units.
 // Outside that range the card follows the finger freely. Returns the snapped centre and guides.
+// Magnetic alignment only looks at the card's neighbourhood: the SNAP_NEIGHBOURS cards whose edges
+// are closest to it, and none further than one card width away (gap between the boxes, not centres).
+// One pass over the board keeps the four best in a tiny sorted list, so large boards stay cheap.
+export const SNAP_NEIGHBOURS = 4;
+export function snapNeighbours(store, id, x, y, width, h, count = SNAP_NEIGHBOURS) {
+  const near = [];
+  for (const card of store.kartlar) {
+    if (card.id === id) continue;
+    const oh = cardHeight(card, width);
+    const gap = Math.hypot(Math.max(0, Math.abs(card.x - x) - width), Math.max(0, Math.abs(card.y - y) - (h + oh) / 2));
+    if (gap > width || (near.length === count && gap >= near[count - 1].gap)) continue;
+    near.push({ card, gap, h: oh }); near.sort((a, b) => a.gap - b.gap); if (near.length > count) near.pop();
+  }
+  return near;
+}
 export function snapPosition(store, id, x, y, width, limit) {
   const moved = store.kartlar.find(card => card.id === id); if (!moved) return { x, y, guides: [] };
   const lines = (cx, cy, h) => ({ xs: [cx - width / 2, cx, cx + width / 2], ys: [cy - h / 2, cy, cy + h / 2] });
   const h = cardHeight(moved, width), mine = lines(x, y, h);
   let bestX = null, bestY = null;
-  for (const card of store.kartlar) {
-    if (card.id === id) continue;
-    const other = lines(card.x, card.y, cardHeight(card, width));
+  for (const { card, h: oh } of snapNeighbours(store, id, x, y, width, h)) {
+    const other = lines(card.x, card.y, oh);
     for (const own of mine.xs) for (const at of other.xs) {
-      const d = at - own; if (Math.abs(d) <= limit && (!bestX || Math.abs(d) < Math.abs(bestX.d))) bestX = { d, at, card };
+      const d = at - own; if (Math.abs(d) <= limit && (!bestX || Math.abs(d) < Math.abs(bestX.d))) bestX = { d, at, card, oh };
     }
     for (const own of mine.ys) for (const at of other.ys) {
       const d = at - own; if (Math.abs(d) <= limit && (!bestY || Math.abs(d) < Math.abs(bestY.d))) bestY = { d, at, card };
     }
   }
   const nx = x + (bestX?.d ?? 0), ny = y + (bestY?.d ?? 0), guides = [];
-  if (bestX) {
-    const oh = cardHeight(bestX.card, width) / 2;
-    guides.push({ x1: bestX.at, x2: bestX.at, y1: Math.min(ny - h / 2, bestX.card.y - oh), y2: Math.max(ny + h / 2, bestX.card.y + oh) });
-  }
-  if (bestY) {
-    guides.push({ y1: bestY.at, y2: bestY.at, x1: Math.min(nx, bestY.card.x) - width / 2, x2: Math.max(nx, bestY.card.x) + width / 2 });
-  }
+  if (bestX) guides.push({ x1: bestX.at, x2: bestX.at, y1: Math.min(ny - h / 2, bestX.card.y - bestX.oh / 2), y2: Math.max(ny + h / 2, bestX.card.y + bestX.oh / 2) });
+  if (bestY) guides.push({ y1: bestY.at, y2: bestY.at, x1: Math.min(nx, bestY.card.x) - width / 2, x2: Math.max(nx, bestY.card.x) + width / 2 });
   return { x: nx, y: ny, guides };
 }

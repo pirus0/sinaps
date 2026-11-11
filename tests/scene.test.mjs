@@ -62,11 +62,15 @@ test('Sade sığdırmada sabit boyutlu haplar kullanılabilir ekran içinde kal�
   }
   assert.equal(exportPlan(makeScene(emptyGraph())), null);
 });
-test('ip kartın kenarından çıkar; iki eksende de yönsüz geometri geçerli', () => {
+test('ip yalnız yan yuvarlaklardan çıkar; üst üste kartlarda aynı yandan, dışa kıvrılarak', () => {
   const horizontal = curveBetween({ x: 0, y: 0, w: 100, h: 88 }, { x: 300, y: 80, w: 100, h: 88 });
-  assert.equal(horizontal.start.x, 50); assert.equal(horizontal.end.x, 250);
-  const vertical = curveBetween({ x: 0, y: 0, w: 100, h: 88 }, { x: 0, y: 300, w: 100, h: 88 });
-  assert.equal(vertical.start.y, 44); assert.equal(vertical.end.y, 256);
+  assert.deepEqual([horizontal.start, horizontal.end], [{ x: 50, y: 0 }, { x: 250, y: 80 }]);
+  for (const [bx, side] of [[0, 1], [30, 1], [-30, -1]]) {
+    const stacked = curveBetween({ x: 0, y: 0, w: 100, h: 88 }, { x: bx, y: 300, w: 100, h: 88 });
+    assert.deepEqual([stacked.start, stacked.end], [{ x: 50 * side, y: 0 }, { x: bx + 50 * side, y: 300 }], 'yan orta noktalar');
+    assert.ok(side > 0 ? stacked.c1.x > Math.max(stacked.start.x, stacked.end.x) : stacked.c1.x < Math.min(stacked.start.x, stacked.end.x), 'dışa kıvrılır');
+    assert.equal(stacked.c1.y, 0); assert.equal(stacked.c2.y, 300);
+  }
 });
 test('başlık kesme Unicode kod noktasını bölmez ve ölçüyü aşmaz', () => {
   assert.equal(shorten('Sürtünme', 200, measure), 'Sürtünme');
@@ -96,15 +100,24 @@ test('Sade büyük tuvalde en az .38: Tam odağı korunur, merkez isteği origin
   assert.deepEqual(fitCamera(scene,viewport),{x:0,y:0,z:.38});assert.ok(116*.38>=44);assert.equal(zoomAt({x:0,y:0,z:.38},{x:195,y:422},{x:195,y:422},.01,viewport,.38).z,.38);
 });
 
-test('mıknatıslı hizalama: yakın çizgiye çeker, uzakta serbest bırakır', async () => {
-  const { snapPosition } = await import('../scene.js');
-  const store = { kartlar: [{ id: 'a', x: 0, y: 0, baslik: 'A', aciklama: '' }, { id: 'b', x: 300, y: 300, baslik: 'B', aciklama: '' }], ipler: [] };
-  const near = snapPosition(store, 'b', 7, 300, 164, 12);
-  assert.equal(near.x, 0); assert.equal(near.y, 300); assert.equal(near.guides.length, 1);
+test('mıknatıslı hizalama: yalnız yakın komşulara çeker, uzaktaki karta değil', async () => {
+  const { snapPosition, snapNeighbours } = await import('../scene.js');
+  const card = (id, x, y) => ({ id, x, y, baslik: id, aciklama: '' });
+  const store = { kartlar: [card('a', 0, 0), card('b', 300, 300)], ipler: [] };
+  const near = snapPosition(store, 'b', 7, 120, 164, 12);
+  assert.equal(near.x, 0); assert.equal(near.guides.length, 1);
   const both = snapPosition(store, 'b', 5, -9, 164, 12);
   assert.deepEqual([both.x, both.y], [0, 0]); assert.equal(both.guides.length, 2);
-  const free = snapPosition(store, 'b', 40, 300, 164, 12);
-  assert.deepEqual([free.x, free.y, free.guides.length], [40, 300, 0]);
-  const edge = snapPosition(store, 'b', 164 + 5, 300, 164, 12);
+  const free = snapPosition(store, 'b', 40, 120, 164, 12);
+  assert.deepEqual([free.x, free.y, free.guides.length], [40, 120, 0]);
+  const edge = snapPosition(store, 'b', 164 + 5, 120, 164, 12);
   assert.equal(edge.x, 164);
+  // Far below (gap > one card width): no pull even on an exactly matching line.
+  const far = snapPosition(store, 'b', 7, 600, 164, 12);
+  assert.deepEqual([far.x, far.guides.length], [7, 0]);
+  // Only the 4 nearest count: a fifth card further away is ignored.
+  const many = { kartlar: [card('m', 0, 0), card('n1', 0, -116), card('n2', 0, 116), card('n3', -200, 0), card('n4', 200, 0), card('f', 37, 150)], ipler: [] };
+  const ids = snapNeighbours(many, 'm', 0, 0, 164, 88).map(item => item.card.id);
+  assert.deepEqual(ids.sort(), ['n1', 'n2', 'n3', 'n4'], 'f (5. yakın) dışarıda');
+  assert.deepEqual(snapNeighbours(many, 'm', 0, 0, 164, 88).map(item => item.gap), [...snapNeighbours(many, 'm', 0, 0, 164, 88).map(item => item.gap)].sort((p, q) => p - q));
 });
