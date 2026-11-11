@@ -62,7 +62,7 @@ export function normalizeGraph(input, repair = true) {
 
 export function vacantPosition(store, x, y, width = 158, exclude = null) {
   const moving = store.kartlar.find(card => card.id === exclude), height = cardHeight(moving || {}, width);
-  const clear = (cx, cy) => (Math.abs(cx) >= width / 2 + 60 || Math.abs(cy) >= height / 2 + 60) && store.kartlar.every(card => card.id === exclude || Math.abs(card.x - cx) >= width + 16
+  const clear = (cx, cy) => store.kartlar.every(card => card.id === exclude || Math.abs(card.x - cx) >= width + 16
     || Math.abs(card.y - cy) >= (cardHeight(card, width) + height) / 2 + 28);
   if (clear(x, y)) return { x, y };
   for (let radius = 1; radius <= store.kartlar.length + 1; radius++) {
@@ -86,7 +86,7 @@ export function addCard(store, { sourceId = null, x = 0, y = 0, width = 158, bas
     x = source.x + width + 44;
     const siblings = store.kartlar.filter(card => card.kaynakId === sourceId);
     y = siblings.length ? Math.max(...siblings.map(card => card.y + cardHeight(card, width) / 2)) + 44 + 28 : source.y;
-    while ((Math.abs(x) < width / 2 + 60 && Math.abs(y) < 104) || store.kartlar.some(card => Math.abs(card.x - x) < width + 16 && Math.abs(card.y - y) < (cardHeight(card, width) + 88) / 2 + 28)) y += 116;
+    while (store.kartlar.some(card => Math.abs(card.x - x) < width + 16 && Math.abs(card.y - y) < (cardHeight(card, width) + 88) / 2 + 28)) y += 116;
     position = { x, y };
   } else position = vacantPosition(store, x, y, width);
   const time = now();

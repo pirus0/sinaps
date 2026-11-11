@@ -3,6 +3,7 @@ import { cardWidth, makeScene, fitCamera, clampCamera } from './scene.js';
 import { CanvasView } from './canvas-view.js';
 import { textMeasure } from './png.js';
 import { setTextMeasure } from './card-text.js';
+import { hiddenCards, portsHiding, hasBranch } from './branch.js';
 import { releasePhotos, photoURL } from './photos.js';
 import { loadSample } from './sample.js';
 import { APP_NAME } from './brand.js';
@@ -32,12 +33,12 @@ const drafts = new Set();
 let png = { ready: null, preparing: false, retry: false };
 let library = emptyWorkspace(), activeBoard = null, boardMenuId = null;
 const draftBoards = new Set(), viewLibrary = { sonTuvalId: null, tuvaller: Object.create(null) };
-const view = { camera: { x: 0, y: 0, z: 1 }, tamCamera: { x: 0, y: 0, z: 1 }, sade: false, target: null, highlight: null };
+const view = { camera: { x: 0, y: 0, z: 1 }, tamCamera: { x: 0, y: 0, z: 1 }, sade: false, target: null, highlight: null, collapsed: [] };
 let meta = { sonYedek: null };
 try { meta = { ...meta, ...JSON.parse(localStorage.getItem('dallanan-not-meta-v1') || '{}') }; } catch {}
 function saveMeta() { try { localStorage.setItem('dallanan-not-meta-v1', JSON.stringify(meta)); } catch {} }
 function saveView() {
-  if (activeBoard) viewLibrary.tuvaller[activeBoard] = { camera: view.camera, tamCamera: view.tamCamera, sade: view.sade };
+  if (activeBoard) viewLibrary.tuvaller[activeBoard] = { camera: view.camera, tamCamera: view.tamCamera, sade: view.sade, collapsed: view.collapsed };
   viewLibrary.sonTuvalId = activeBoard;
   try { localStorage.setItem(VIEW_KEY, JSON.stringify(viewLibrary)); } catch {}
 }
@@ -174,7 +175,27 @@ function pushRoute(next, replace = false) {
   next = { ...next, board: activeBoard };
   route = next; history[replace ? 'replaceState' : 'pushState'](next, '', next.card ? `#kart=${encodeURIComponent(next.card)}` : location.pathname);
 }
+// Hidden branches (branch.js): a view setting per board, recomputed only when the board or the folds change.
+let hiddenCache = { store: null, collapsed: null, width: 0, ids: new Set() };
+function hiddenNow() {
+  if (hiddenCache.store !== store || hiddenCache.collapsed !== view.collapsed || hiddenCache.width !== width())
+    hiddenCache = { store, collapsed: view.collapsed, width: width(), ids: hiddenCards(store, view.collapsed, width()) };
+  return hiddenCache.ids;
+}
+function togglePort(id, side) {
+  const key = id + ':' + side;
+  if (view.collapsed.includes(key)) view.collapsed = view.collapsed.filter(item => item !== key);
+  else if (hasBranch(store, id, side, width())) view.collapsed = [...view.collapsed, key];
+  else return;
+  saveView(); canvas.requestDraw();
+}
+// A card reached another way (search, a new link, a new branch card) opens the folds hiding it.
+function reveal(id) {
+  if (!view.collapsed.length) return; const open = new Set(portsHiding(store, view.collapsed, id, width()));
+  if (open.size) { view.collapsed = view.collapsed.filter(key => !open.has(key)); saveView(); }
+}
 function focusCard(id, pair = false) {
+  reveal(id);
   const card = store.kartlar.find(item => item.id === id); if (!card) return;
   const source = pair && store.kartlar.find(item => item.id === card.kaynakId);
   view.camera = source ? { x: (source.x + card.x) / 2, y: (source.y + card.y) / 2,
@@ -207,7 +228,9 @@ function createCard(sourceId = null, at = null) {
   if (source && !source.baslik.trim() && !source.aciklama.trim() && !source.fotoId) { $('#card-title')?.focus(); return; }
   if (current && !persist()) return;
   clearUndo();
-  const result = addCard(store, { sourceId, x: view.camera.x, y: view.camera.y, width: width() });
+  // The first card of a board is its main card and sits on the red centre dot (branch.js).
+  const origin = store.kartlar.length ? view.camera : { x: 0, y: 0 };
+  const result = addCard(store, { sourceId, x: origin.x, y: origin.y, width: width() });
   store = at ? positionCard(result.store, result.card.id, at.x, at.y, width()) : result.store;
   drafts.add(result.card.id); view.sade = false; invalidatePNG();
   openCard(result.card.id, { fresh: true, replace: current !== null });
@@ -223,7 +246,7 @@ function selectCard(id) {
     const before = new Set(store.ipler.map(ip => ip.id)), next = connectCards(store, view.target, id);
     if (!persist(next)) return;
     const added = next.ipler.find(ip => !before.has(ip.id));
-    view.target = null; current = null; pushRoute({ card: null, panel: null, target: null }, true); render();
+    view.target = null; current = null; reveal(id); pushRoute({ card: null, panel: null, target: null }, true); render();
     setUndo(() => disconnect(store, added.id), 'Bağlandı'); return;
   }
   view.highlight = null; openCard(id);
@@ -244,6 +267,7 @@ function activateWorkspace(id, { fresh = false, replace = false, record = true }
   view.camera = valid(saved?.camera) ? saved.camera : { x: 0, y: 0, z: 1 };
   view.tamCamera = valid(saved?.tamCamera) ? saved.tamCamera : { ...view.camera };
   view.sade = saved?.sade === true; view.target = null; view.highlight = null;
+  view.collapsed = Array.isArray(saved?.collapsed) ? saved.collapsed.filter(key => typeof key === 'string') : [];
   library = { ...library, tuvaller: library.tuvaller.map(board => board.id === id ? { ...board, sonAcilma: new Date().toISOString() } : board) };
   if (sheet.open) sheet.close(); if (record) pushRoute({ card: null, panel: null, target: null }, replace);
   renaming = fresh; invalidatePNG(); render(); saveView(); warmActivePhotos(); if (fresh) { $('#board-name').focus(); $('#board-name').select(); }
@@ -269,7 +293,7 @@ function wireDrop(sourceId, targetId, point) {
   if (targetId) {
     if (sourceId === targetId || linked(store, sourceId, targetId) || locked) return;
     const previous = new Set(store.ipler.map(ip => ip.id)), next = connectCards(store, sourceId, targetId);
-    if (!persist(next)) return; const added = next.ipler.find(ip => !previous.has(ip.id)); canvas.requestDraw();
+    if (!persist(next)) return; const added = next.ipler.find(ip => !previous.has(ip.id)); reveal(targetId); canvas.requestDraw();
     setUndo(() => disconnect(store, added.id), 'Bağlandı');
   } else createCard(sourceId, point);
 }
@@ -370,9 +394,10 @@ function updateViewport() {
   document.documentElement.style.setProperty('--keyboard', `${bottom}px`); document.body.classList.toggle('keyboard', bottom > 100);
 }
 const canvas = new CanvasView($('#canvas'), {
-  store: () => store, state: () => ({ ...view, locked, title: activeName(), board: activeBoard }), scene,
+  store: () => store, state: () => ({ ...view, locked, title: activeName(), board: activeBoard, hidden: hiddenNow() }), scene,
   onCard: selectCard, onPhoto: requestPhoto,
   onWireTap: beginLink,
+  onPortToggle: togglePort,
   onWireDrop: wireDrop,
   onCamera(camera, done) { view.camera = camera; if (done) saveView(); },
   onDragStart: clearUndo,
@@ -464,6 +489,7 @@ try {
     view.camera = savedBoard.camera; view.sade = savedBoard.sade === true;
     view.tamCamera = validCamera(savedBoard.tamCamera) ? savedBoard.tamCamera : { ...savedBoard.camera };
   } else if (store.kartlar.length) { view.camera = { x: 0, y: 0, z: 1 }; view.tamCamera = { ...view.camera }; }
+  if (Array.isArray(savedBoard?.collapsed)) view.collapsed = savedBoard.collapsed.filter(key => typeof key === 'string');
   view.camera = clampCamera(view.camera, scene(), viewport());
 } catch {
   try { rawBroken = lastSaved ?? localStorage.getItem(GRAPH_KEY) ?? localStorage.getItem(LEGACY_KEY); } catch {}

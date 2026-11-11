@@ -135,8 +135,10 @@ test('fotoğraf kimliği JSON turunda korunur, foto yüksekliği yeni kart boşl
   const added = addCard(graph, { x: graph.kartlar[0].x, y: graph.kartlar[0].y }, 'photo-new');
   for (const card of graph.kartlar) assert.ok(Math.abs(card.x - added.card.x) >= 174 || Math.abs(card.y - added.card.y) >= (88 + (card.fotoId ? 158 * .6 : 0) + 88) / 2 + 28);
 });
-test('yeni kart merkez çevresindeki 60px alanı kapatmaz', () => {
-  const { card } = addCard(emptyGraph()); assert.ok(Math.abs(card.x) >= 158 / 2 + 60 || Math.abs(card.y) >= 104);
+test('boş tuvalde ilk kart kırmızı noktanın üstüne (merkeze) konur; ikinci kart onun üstüne binmez', () => {
+  const first = addCard(emptyGraph(), { x: 0, y: 0 }); assert.deepEqual([first.card.x, first.card.y], [0, 0]);
+  const second = addCard(first.store, { x: 0, y: 0 }).card;
+  assert.ok(Math.abs(second.x) >= 158 + 16 || Math.abs(second.y) >= 88 + 28);
 });
 test('yazısız görselin yüksekliği gerçek boyuyla yerleşime ve yedeğe katılır', () => {
   let graph = addCard(emptyGraph(), { x: 0, y: 200 }, 'photo').store;

@@ -7,6 +7,7 @@ import { overTrash, armTrash, swallow } from './trash-drop.js';
 import { brandSVG } from './brand.js';
 // Screen width (px) a card needs before each part is drawn; parts vanish in this order when zooming out.
 // Print is unaffected: pdf.js draws every part at full size.
+const DOUBLE_TAP = 280;
 const GHOST = 24 * 9 / 2.6; // px; logo dot radius equals the center dot's 9 px
 const LOD = Object.freeze({ description: 120, controls: 90, photo: 64, title: 40, edges: 16, outline: 16, dot: 8 });
 
@@ -37,7 +38,7 @@ export class CanvasView {
       const photo = event.target.closest('[data-photo]')?.dataset.photo;
       const port = event.target.closest('[data-port]')?.dataset.port;
       if (['Enter', ' '].includes(event.key) && (photo || port)) {
-        event.preventDefault(); if (photo) this.callbacks.onPhoto?.(photo); else this.callbacks.onWireTap?.(port); return;
+        event.preventDefault(); if (photo) this.callbacks.onPhoto?.(photo); else this.callbacks.onPortToggle?.(port, Number(event.target.closest('[data-port]').dataset.side)); return;
       }
       const id = event.target.closest('[data-card]')?.dataset.card;
       if (id && ['Enter', ' '].includes(event.key)) { event.preventDefault(); this.callbacks.onCard(id); }
@@ -73,7 +74,9 @@ export class CanvasView {
     const defs = svgNode('defs'); let clipIndex = 0;
     const edgeLayer = svgNode('g', { class: 'canvas-edges', 'aria-hidden': 'true' });
     const cardLayer = svgNode('g', { class: 'canvas-cards' });
-    const rects = new Map(store.kartlar.map(card => {
+    // Cards in a collapsed branch are not drawn, nor are their links (branch.js).
+    const hidden = state.hidden || new Set(), shown = hidden.size ? store.kartlar.filter(card => !hidden.has(card.id)) : store.kartlar;
+    const rects = new Map(shown.map(card => {
       const pill = isImageCard(card) ? 40 : Math.max(card.fotoId ? 74 : 72, Math.min(width, measurePill(cardTitle(card)) + 24 + (card.fotoId ? 31 : 0), (width + 44) * camera.z - 8));
       return [card.id, { ...card, w: sade ? pill / camera.z : width, h: sade ? 40 / camera.z : cardHeight(card, width) }];
     }));
@@ -94,7 +97,7 @@ export class CanvasView {
         width: width * camera.z, height: cardHeight(this.original, width) * camera.z, rx: 18 * camera.z,
         class: 'drag-ghost', fill: 'none', stroke: 'var(--ink-faint)', 'stroke-dasharray': '4 4' }));
     }
-    for (const card of store.kartlar) {
+    for (const card of shown) {
       const rect = rects.get(card.id), point = worldToScreen(card, camera, viewport);
       const scale = sade ? 1 : camera.z, w = sade ? rect.w * camera.z : width, h = sade ? 40 : cardHeight(card, width);
       // Only cards on screen are built; panning a large board stays cheap.
@@ -146,9 +149,10 @@ export class CanvasView {
       group.append(surface);
       if (!sade && !target && !state.locked && shows('controls')) {
         for (const side of [-1, 1]) {
-          const port = svgNode('g', { 'data-port': card.id, 'data-side': side, class: 'card-port', transform: `translate(${side * w / 2} 0)`, 'aria-label': 'Bağla', role: 'button', tabindex: 0 });
+          const folded = state.collapsed?.includes(card.id + ':' + side), wiring = this.wire && this.start?.id === card.id && this.start.side === side;
+          const port = svgNode('g', { 'data-port': card.id, 'data-side': side, class: `card-port${folded ? ' folded' : ''}`, transform: `translate(${side * w / 2} 0)`, 'aria-label': folded ? 'Göster' : 'Gizle', 'aria-pressed': folded ? 'true' : 'false', role: 'button', tabindex: 0 });
           port.append(svgNode('circle', { r: 22 / scale, fill: 'transparent', stroke: 'none' }),
-            svgNode('circle', { r: 6 / scale, fill: this.wire && this.start?.id === card.id && this.start.side === side ? 'var(--iris)' : 'var(--surface)',
+            svgNode('circle', { r: 6 / scale, fill: wiring ? 'var(--iris)' : folded ? 'var(--ink-soft)' : 'var(--surface)',
               stroke: this.wire && this.start?.id === card.id && this.start.side === side ? 'var(--iris)' : 'var(--ink-soft)', 'stroke-width': 1.5 / scale }));
           group.append(port);
         }
@@ -262,7 +266,9 @@ export class CanvasView {
   previewDrag(point) {
     const camera = this.callbacks.state().camera, viewport = this.viewport(), world = screenToWorld(point, camera, viewport);
     // 12 screen px of pull, whatever the zoom.
-    const snap = snapPosition(this.callbacks.store(), this.original.id, world.x - this.dragOffset.x, world.y - this.dragOffset.y, cardWidth(viewport.width), 12 / camera.z);
+    const hidden = this.callbacks.state().hidden, all = this.callbacks.store();
+    const board = hidden?.size ? { ...all, kartlar: all.kartlar.filter(card => !hidden.has(card.id)) } : all;
+    const snap = snapPosition(board, this.original.id, world.x - this.dragOffset.x, world.y - this.dragOffset.y, cardWidth(viewport.width), 12 / camera.z);
     this.guides = snap.guides; this.callbacks.onMovePreview(this.original.id, snap.x, snap.y); this.requestDraw();
   }
   autoEdge() {
@@ -287,7 +293,7 @@ export class CanvasView {
     }
     this.mode = 'idle'; this.wire = null; this.guides = null; cancelAnimationFrame(this.edgeFrame); this.edgeFrame = null;
     if (mode === 'photo-pending') this.callbacks.onPhoto?.(start.id);
-    else if (mode === 'wire-pending') this.callbacks.onWireTap?.(start.id);
+    else if (mode === 'wire-pending') this.portTap(start.id, start.side);
     else if (mode === 'wire') {
       const viewport = this.viewport();
       if (wire?.target || (point.y >= 112 && point.y <= viewport.height - 118 && point.x >= 0 && point.x <= viewport.width)) {
@@ -303,6 +309,14 @@ export class CanvasView {
     else if (mode === 'pending') this.lastTap = { point, time: Date.now() };
     if (['pan', 'pinch', 'one-zoom', 'drag'].includes(mode)) this.callbacks.onCamera(this.callbacks.state().camera, true);
     this.requestDraw();
+  }
+  // One tap on a side port hides or shows the branches leaving that side; a second tap within
+  // DOUBLE_TAP ms cancels that and opens the linking tool instead (pick the card to link to).
+  portTap(id, side) {
+    const key = id + ':' + side;
+    if (this.portTimer && this.portKey === key) { clearTimeout(this.portTimer); this.portTimer = null; this.callbacks.onWireTap?.(id); return; }
+    clearTimeout(this.portTimer); this.portKey = key;
+    this.portTimer = setTimeout(() => { this.portTimer = null; this.callbacks.onPortToggle?.(id, side); }, DOUBLE_TAP);
   }
   cancel() {
     clearTimeout(this.longTimer); cancelAnimationFrame(this.edgeFrame); this.edgeFrame = null;
