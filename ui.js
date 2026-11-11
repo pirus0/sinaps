@@ -9,7 +9,7 @@ const paths = {
   upload: '<path d="M12 15V4M8 8l4-4 4 4M5 15v3.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
   backup: '<path d="M7 17.5a4 4 0 0 1-.4-7.98A5.5 5.5 0 0 1 17.4 8.6a4.2 4.2 0 0 1-.4 8.9H7ZM12 10.5v5.5m-2.4-2.2 2.4 2.4 2.4-2.4"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>', close: '<path d="m6.5 6.5 11 11m0-11-11 11"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>', minus: '<path d="M5 12h14"/>', close: '<path d="m6.5 6.5 11 11m0-11-11 11"/>',
   right: '<path d="m9.5 6 6 6-6 6"/>',
   left: '<path d="m14.5 6-6 6 6 6"/>',
   check: '<path d="m5 12 4 4L19 6"/>',

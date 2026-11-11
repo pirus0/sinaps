@@ -1,7 +1,7 @@
 import { app } from './app.js';
-import { cutCards, arrangeForPrint } from './pdf-arrange.js';
+import { cutCards, printPlan } from './pdf-arrange.js';
 import { shorten } from './scene.js';
-import { planPDF } from './pdf-layout.js';
+import { BODY_PT, MIN_PT, MAX_PT } from './pdf-layout.js';
 import { el, button } from './ui.js';
 import { sharePrepared, downloadFile } from './files.js';
 import { preparePDF } from './pdf.js';
@@ -29,42 +29,48 @@ export function pdfPreview(plan) {
     const own = cell.own;
     svg.append(node('rect', { x: own.minX, y: own.minY, width: own.maxX - own.minX, height: own.maxY - own.minY, fill: 'none',
       stroke: 'var(--ink-soft)', 'stroke-width': 1, 'stroke-dasharray': '6 4', 'vector-effect': 'non-scaling-stroke', class: 'pdf-page' }));
-    svg.append(node('text', { x: own.minX + size * .5, y: own.minY + size * 1.2, 'font-size': size, 'font-weight': 700, fill: 'var(--ink-soft)', stroke: 'var(--paper)', 'stroke-width': size * .18, 'paint-order': 'stroke', class: 'pdf-page-number' }, String(index + 2)));
+    svg.append(node('text', { x: own.minX + size * .5, y: own.minY + size * 1.2, 'font-size': size, 'font-weight': 700, fill: 'var(--ink-soft)', stroke: 'var(--paper)', 'stroke-width': size * .18, 'paint-order': 'stroke', class: 'pdf-page-number' }, String(index + 1)));
   }
   return svg;
 }
 
 export function openPDF() {
-  const title = app.activeName(), original = structuredClone(app.store);
-  let plan; try { plan = planPDF(original, app.width(), title); } catch (error) { app.notice(error.message); return; }
+  const title = app.activeName(), original = structuredClone(app.store), plans = new Map();
+  // Each size is planned once: cards cut by a page edge are already moved into their page.
+  const planAt = size => { if (!plans.has(size)) plans.set(size, printPlan(original, app.width(), title, size)); return plans.get(size); };
+  let pt = BODY_PT;
+  try { planAt(pt); } catch (error) { app.notice(error.message); return; }
   app.openSheet('PDF'); const epoch = ++pdfEpoch;
-  let arranged = null, useArranged = false;
-  const frame = el('div', 'pdf-preview'), info = el('div', 'pdf-info'), actions = el('div', 'confirmation pdf-confirmation');
-  app.sheetContent.append(frame, info, actions);
-  const chosen = () => useArranged ? arranged : { store: original, plan };
+  const frame = el('div', 'pdf-preview'), zoom = el('div', 'pdf-zoom'), info = el('div', 'pdf-info'), actions = el('div', 'confirmation pdf-confirmation');
+  const size = el('span', 'pdf-size');
+  const step = delta => {
+    const next = pt + delta; if (next < MIN_PT || next > MAX_PT) return;
+    try { planAt(next); pt = next; } catch (error) { app.notice(error.message); return; }
+    paint();
+  };
+  const smaller = button('Küçült', () => step(-1), 'icon-button', 'minus'), larger = button('Büyüt', () => step(1), 'icon-button', 'plus');
+  zoom.append(smaller, size, larger);
+  app.sheetContent.append(frame, zoom, info, actions);
+  const chosen = () => planAt(pt);
   const paint = () => {
     if (!frame.isConnected) return;
     const current = chosen().plan, cut = cutCards(current).length;
     frame.replaceChildren(pdfPreview(current));
-    info.replaceChildren(el('strong', '', `${current.total} sayfa · A4 ${current.orientation === 'portrait' ? 'dikey' : 'yatay'}`),
+    size.textContent = `${pt} pt`; smaller.disabled = pt <= MIN_PT; larger.disabled = pt >= MAX_PT;
+    info.replaceChildren(el('strong', '', `${current.total} sayfa · A4 yatay`),
       el('small', cut ? 'danger' : 'muted', cut ? `${cut} kart çizgide` : `${title}-A4.pdf`));
-    actions.replaceChildren();
-    if (useArranged) actions.append(button('Özgün', () => { useArranged = false; paint(); }, 'button secondary'));
-    else if (arranged?.improved) actions.append(button('Düzenle', () => { useArranged = true; paint(); }, 'button secondary'));
-    actions.append(button('Oluştur', generate, 'button'));
+    actions.replaceChildren(button('Oluştur', generate, 'button'));
   };
   const generate = () => {
-    const { store: snapshot, plan: printPlan } = chosen(); actions.remove();
+    const { store: snapshot, plan: chosenPlan } = chosen(); actions.remove(); zoom.remove();
     let ready, retry = false;
     const send = button('Paylaş', async () => {
       if (!ready) return; const result = await sharePrepared(ready.file, title);
       if (result === 'activation') { if (retry) downloadFile(ready.file); else { retry = true; send.replaceChildren(document.createTextNode('Gönder')); send.setAttribute('aria-label', 'Gönder'); } }
     }, 'button wide', 'share'); send.disabled = true; app.sheetContent.append(send);
-    preparePDF(snapshot, app.width(), title, printPlan).then(result => { if (epoch !== pdfEpoch || !send.isConnected) return; ready = result; send.disabled = false; }).catch(error => {
+    preparePDF(snapshot, app.width(), title, chosenPlan).then(result => { if (epoch !== pdfEpoch || !send.isConnected) return; ready = result; send.disabled = false; }).catch(error => {
       if (epoch !== pdfEpoch || !send.isConnected) return; const copy = el('p', 'sheet-copy danger', 'PDF hazırlanamadı. Yeniden dene.'); app.sheetContent.append(copy, button('Yeniden', () => openPDF(), 'button secondary')); console.warn('PDF:', error);
     });
   };
   paint();
-  // Print arrangement plans several grids; run it after the sheet is on screen.
-  setTimeout(() => { if (epoch !== pdfEpoch) return; try { arranged = arrangeForPrint(original, app.width(), title); } catch { arranged = null; } paint(); }, 0);
 }

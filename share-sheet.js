@@ -2,7 +2,7 @@ import { app } from './app.js';
 import { warmPhotos, exportPhotos } from './photos.js';
 import { preparePNG } from './png.js';
 import { $, row } from './ui.js';
-import { planPDF } from './pdf-layout.js';
+import { printPlan } from './pdf-arrange.js';
 import { openPDF } from './pdf-sheet.js';
 import { sharePrepared, downloadFile } from './files.js';
 import { boardGraph } from './workspace.js';
@@ -31,7 +31,7 @@ export async function prepareShare() {
 export function openShare() {
   app.openSheet('Paylaş');
   const image = row(app.png.retry ? 'Gönder' : 'Görsel', sendPNG, { glyph: 'share' }); image.id = 'share-image'; image.disabled = !app.png.ready;
-  let plan; try { plan = planPDF(app.store, app.width(), app.activeName()); } catch {}
+  let plan; try { plan = printPlan(app.store, app.width(), app.activeName()).plan; } catch {}
   const pdf = row('PDF', () => openPDF(), { glyph: 'text', value: plan ? `${plan.total} sayfa` : '', arrow: true }); pdf.disabled = !plan;
   let readyCopy, copyRetry = false; const snapshot = structuredClone(app.library), boardId = app.activeBoard, title = app.activeName();
   const copy = row('Kopya', async () => { if (!readyCopy) return; const result = await sharePrepared(readyCopy, title, `Sinaps tuvali: ${title} · ${new URL('./', location.href).href}`);
